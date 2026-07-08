@@ -3,8 +3,9 @@ from datetime import UTC, datetime
 from sqlalchemy import select
 from sqlalchemy.orm import Session
 
+from app.core.security import hash_password
 from app.db.session import SessionLocal
-from app.models import IOC, Source, Threat, ThreatIOC
+from app.models import IOC, Role, Source, Threat, ThreatIOC, User, UserRole
 
 
 def parse_dt(value: str) -> datetime:
@@ -106,6 +107,42 @@ def link_threat_ioc(db: Session, threat: Threat, ioc: IOC) -> None:
     db.add(ThreatIOC(threat_id=threat.id, ioc_id=ioc.id, relationship_type="observed"))
 
 
+def get_or_create_role(db: Session, *, name: str, description: str) -> Role:
+    role = db.scalar(select(Role).where(Role.name == name))
+    if role is not None:
+        return role
+
+    role = Role(name=name, description=description)
+    db.add(role)
+    db.flush()
+    return role
+
+
+def get_or_create_user(db: Session, *, role: Role) -> User:
+    email = "analyst@example.com"
+    user = db.scalar(select(User).where(User.email == email))
+    if user is None:
+        user = User(
+            email=email,
+            password_hash=hash_password("ChangeMe123!"),
+            full_name="Demo CTI Analyst",
+            status="active",
+        )
+        db.add(user)
+        db.flush()
+
+    existing_link = db.scalar(
+        select(UserRole).where(
+            UserRole.user_id == user.id,
+            UserRole.role_id == role.id,
+        )
+    )
+    if existing_link is None:
+        db.add(UserRole(user_id=user.id, role_id=role.id))
+
+    return user
+
+
 def seed_database() -> None:
     db = SessionLocal()
     try:
@@ -151,6 +188,15 @@ def seed_database() -> None:
 
         link_threat_ioc(db, ransomware_threat, domain_ioc)
         link_threat_ioc(db, phishing_threat, ip_ioc)
+
+        analyst_role = get_or_create_role(
+            db,
+            name="cti_analyst",
+            description="Cyber threat intelligence analyst",
+        )
+        get_or_create_role(db, name="soc_analyst", description="Security operations analyst")
+        get_or_create_role(db, name="admin", description="System administrator")
+        get_or_create_user(db, role=analyst_role)
 
         db.commit()
         print("Seed data inserted successfully.")

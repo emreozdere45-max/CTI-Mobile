@@ -73,7 +73,60 @@ Demo CTI verilerini PostgreSQL'e ekle:
 python -m app.db.seed
 ```
 
-Bu komut `sources`, `threats`, `iocs` ve `threat_iocs` tablolarina baslangic demo verilerini ekler.
+Bu komut `sources`, `threats`, `iocs`, `threat_iocs`, `roles`, `users` ve `user_roles` tablolarina baslangic demo verilerini ekler.
+
+Demo kullanici:
+
+```text
+email: analyst@example.com
+password: ChangeMe123!
+role: cti_analyst
+```
+
+## Auth Testi
+
+API'yi baslat:
+
+```bash
+uvicorn app.main:app --reload
+```
+
+Swagger'i ac:
+
+```text
+http://127.0.0.1:8000/docs
+```
+
+Login endpointini dene:
+
+```text
+POST /api/v1/auth/login
+```
+
+Gonderecegin JSON:
+
+```json
+{
+  "email": "analyst@example.com",
+  "password": "ChangeMe123!"
+}
+```
+
+Basarili cevapta `access_token` gelir. Bu token, mobil uygulamanin sonraki isteklerde kullanicinin giris yaptigini kanitlamak icin saklayacagi degerdir.
+
+Swagger'da sag ustteki `Authorize` butonuna bas ve token'i su formatta gir:
+
+```text
+Bearer ACCESS_TOKEN_DEGERI
+```
+
+Sonra profil endpointini dene:
+
+```text
+GET /api/v1/users/me
+```
+
+Bu endpoint token dogruysa giris yapan kullanicinin profilini dondurur.
 
 Baglanti adresi `.env.example` icinde hazirdir:
 
