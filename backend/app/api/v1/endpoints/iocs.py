@@ -1,6 +1,9 @@
-from fastapi import APIRouter, Query
+from fastapi import APIRouter, Depends, Query
+from sqlalchemy import func, select
+from sqlalchemy.orm import Session
 
-from app.services.demo_data import DEMO_IOCS
+from app.db.session import get_db
+from app.models import IOC, ThreatIOC
 
 router = APIRouter()
 
@@ -21,13 +24,33 @@ def detect_ioc_type(value: str) -> str:
 
 
 @router.get("/search")
-def search_iocs(value: str = Query(..., min_length=2), type: str | None = None) -> dict:
+def search_iocs(
+    value: str = Query(..., min_length=2),
+    type: str | None = None,
+    db: Session = Depends(get_db),
+) -> dict:
     detected_type = type or detect_ioc_type(value)
     normalized_value = value.lower().strip()
-    results = [
-        item
-        for item in DEMO_IOCS
-        if item["value"].lower() == normalized_value and item["type"] == detected_type
-    ]
+    iocs = db.scalars(
+        select(IOC).where(
+            IOC.normalized_value == normalized_value,
+            IOC.type == detected_type,
+        )
+    ).all()
+    results = []
+    for ioc in iocs:
+        related_threat_count = db.scalar(
+            select(func.count()).select_from(ThreatIOC).where(ThreatIOC.ioc_id == ioc.id)
+        )
+        results.append(
+            {
+                "id": str(ioc.id),
+                "type": ioc.type,
+                "value": ioc.value,
+                "risk_score": ioc.risk_score,
+                "confidence_score": ioc.confidence_score,
+                "related_threat_count": related_threat_count,
+            }
+        )
 
     return {"data": {"query": value, "detected_type": detected_type, "results": results}}

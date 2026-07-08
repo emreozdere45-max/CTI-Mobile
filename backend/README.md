@@ -12,12 +12,37 @@ python --version
 
 Komut bulunamazsa Python'u kurup "Add Python to PATH" secenegini isaretle.
 
+Sanal ortam olustur:
+
 ```bash
 python -m venv .venv
+```
+
+Bu komut proje icin izole bir Python alani olusturur. Boylece bu projenin paketleri bilgisayarindaki diger Python projelerini bozmaz.
+
+Sanal ortami aktif et:
+
+```bash
 .venv\Scripts\activate
+```
+
+Bu komuttan sonra terminalin basinda `(.venv)` gorursun. Bu, paketleri artik proje icindeki sanal ortama kurdugun anlamina gelir.
+
+Paketleri kur:
+
+```bash
 pip install -r requirements.txt
+```
+
+Bu komut FastAPI, SQLAlchemy, Alembic ve test paketlerini kurar.
+
+API'yi baslat:
+
+```bash
 uvicorn app.main:app --reload
 ```
+
+Bu komut backend'i calistirir. `--reload`, kod degisince sunucunun kendini yenilemesini saglar.
 
 API calistiktan sonra:
 
@@ -39,6 +64,16 @@ Backend klasorunde migration calistir:
 ```bash
 alembic upgrade head
 ```
+
+Bu komut PostgreSQL icinde tabloları olusturur.
+
+Demo CTI verilerini PostgreSQL'e ekle:
+
+```bash
+python -m app.db.seed
+```
+
+Bu komut `sources`, `threats`, `iocs` ve `threat_iocs` tablolarina baslangic demo verilerini ekler.
 
 Baglanti adresi `.env.example` icinde hazirdir:
 
