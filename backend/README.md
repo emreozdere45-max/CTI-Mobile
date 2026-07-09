@@ -130,6 +130,27 @@ Bu endpoint token dogruysa giris yapan kullanicinin profilini dondurur.
 
 `/threats` ve `/iocs/search` endpointleri de token ister. Swagger'da `Authorize` yapmadan denersen `401 Unauthorized` doner; token verdikten sonra tehdit ve IOC verileri gelir.
 
+## AI Ozet Testi
+
+Once token ile `GET /api/v1/threats` calistir ve bir `threat_id` kopyala.
+
+Sonra su endpointi dene:
+
+```text
+POST /api/v1/ai/threat-summary
+```
+
+Gonderecegin JSON:
+
+```json
+{
+  "threat_id": "THREAT_ID_DEGERI",
+  "summary_type": "short"
+}
+```
+
+Bu endpoint simdilik gercek AI kullanmaz. Mock ozet uretir ve sonucu PostgreSQL'deki `ai_summaries` tablosuna kaydeder. Gercek AI entegrasyonu daha sonra ayni endpointin arkasina eklenecektir.
+
 Baglanti adresi `.env.example` icinde hazirdir:
 
 ```text
