@@ -128,6 +128,8 @@ GET /api/v1/users/me
 
 Bu endpoint token dogruysa giris yapan kullanicinin profilini dondurur.
 
+`/threats` ve `/iocs/search` endpointleri de token ister. Swagger'da `Authorize` yapmadan denersen `401 Unauthorized` doner; token verdikten sonra tehdit ve IOC verileri gelir.
+
 Baglanti adresi `.env.example` icinde hazirdir:
 
 ```text

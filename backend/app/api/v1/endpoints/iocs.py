@@ -2,8 +2,9 @@ from fastapi import APIRouter, Depends, Query
 from sqlalchemy import func, select
 from sqlalchemy.orm import Session
 
+from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models import IOC, ThreatIOC
+from app.models import IOC, ThreatIOC, User
 
 router = APIRouter()
 
@@ -28,6 +29,7 @@ def search_iocs(
     value: str = Query(..., min_length=2),
     type: str | None = None,
     db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
 ) -> dict:
     detected_type = type or detect_ioc_type(value)
     normalized_value = value.lower().strip()

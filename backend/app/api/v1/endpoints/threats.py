@@ -2,14 +2,18 @@ from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy import select
 from sqlalchemy.orm import Session, selectinload
 
+from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models import Threat
+from app.models import Threat, User
 
 router = APIRouter()
 
 
 @router.get("")
-def list_threats(db: Session = Depends(get_db)) -> dict:
+def list_threats(
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
     threats = db.scalars(
         select(Threat).options(selectinload(Threat.source)).order_by(Threat.published_at.desc())
     ).all()
@@ -40,7 +44,11 @@ def list_threats(db: Session = Depends(get_db)) -> dict:
 
 
 @router.get("/{threat_id}")
-def get_threat(threat_id: str, db: Session = Depends(get_db)) -> dict:
+def get_threat(
+    threat_id: str,
+    db: Session = Depends(get_db),
+    current_user: User = Depends(get_current_user),
+) -> dict:
     threat = db.scalar(
         select(Threat)
         .where(Threat.id == threat_id)
