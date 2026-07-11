@@ -5,7 +5,7 @@ from sqlalchemy.orm import Session
 
 from app.core.security import hash_password
 from app.db.session import SessionLocal
-from app.models import IOC, Role, Source, Threat, ThreatIOC, User, UserRole
+from app.models import IOC, Notification, Role, Source, Threat, ThreatIOC, User, UserRole
 
 
 def parse_dt(value: str) -> datetime:
@@ -143,6 +143,35 @@ def get_or_create_user(db: Session, *, role: Role) -> User:
     return user
 
 
+def create_demo_notifications(db: Session, *, user: User, threat: Threat, ioc: IOC) -> None:
+    existing_count = db.scalar(select(Notification).where(Notification.user_id == user.id))
+    if existing_count is not None:
+        return
+
+    db.add_all(
+        [
+            Notification(
+                user_id=user.id,
+                notification_type="critical_threat",
+                title="Kritik tehdit tespit edildi",
+                message="Finans sektorunu hedefleyen yeni fidye yazilimi kampanyasi incelenmeli.",
+                severity="critical",
+                target_type="threat",
+                target_id=threat.id,
+            ),
+            Notification(
+                user_id=user.id,
+                notification_type="high_risk_ioc",
+                title="Yuksek riskli IOC bulundu",
+                message="malicious-example.com riskli domain olarak isaretlendi.",
+                severity="high",
+                target_type="ioc",
+                target_id=ioc.id,
+            ),
+        ]
+    )
+
+
 def seed_database() -> None:
     db = SessionLocal()
     try:
@@ -196,7 +225,8 @@ def seed_database() -> None:
         )
         get_or_create_role(db, name="soc_analyst", description="Security operations analyst")
         get_or_create_role(db, name="admin", description="System administrator")
-        get_or_create_user(db, role=analyst_role)
+        demo_user = get_or_create_user(db, role=analyst_role)
+        create_demo_notifications(db, user=demo_user, threat=ransomware_threat, ioc=domain_ioc)
 
         db.commit()
         print("Seed data inserted successfully.")
