@@ -32,4 +32,30 @@ CTI-Mobile/
 
 ## Gelistirme Yaklasimi
 
-Bu repo belge odakli baslar. Once urun ve teknik kararlar netlestirilir, sonra Flutter mobil uygulama, backend API, veritabani ve AI katmani sprintler halinde eklenir.
+Bu repo belge odakli basladi. Once urun ve teknik kararlar netlestirildi; simdi FastAPI backend, PostgreSQL veritabani ve Expo/React Native mobil uygulama sprintler halinde ekleniyor.
+
+## Mevcut Durum
+
+- Backend API calisiyor.
+- PostgreSQL Docker ile kullaniliyor.
+- Auth, threats, IOC search, AI summary, favorites ve notifications endpointleri hazir.
+- Mobil klasor Expo/React Native icin hazirlaniyor.
+
+## Hizli Baslangic
+
+Backend icin:
+
+```powershell
+cd backend
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
+```
+
+Mobil icin:
+
+```powershell
+cd mobile
+npm install
+npm run start
+```
+
+Detayli backend adimlari icin `backend/README.md` dosyasina bak.

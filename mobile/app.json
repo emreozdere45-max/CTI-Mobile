@@ -1,0 +1,21 @@
+{
+  "expo": {
+    "name": "CTI-Mobile",
+    "slug": "cti-mobile",
+    "version": "0.1.0",
+    "orientation": "portrait",
+    "userInterfaceStyle": "automatic",
+    "assetBundlePatterns": [
+      "**/*"
+    ],
+    "ios": {
+      "supportsTablet": true
+    },
+    "android": {
+      "package": "com.ctimobile.app"
+    },
+    "web": {
+      "bundler": "metro"
+    }
+  }
+}

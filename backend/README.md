@@ -1,79 +1,93 @@
 # CTI-Mobile Backend
 
-FastAPI tabanli CTI-Mobile backend iskeleti.
+FastAPI tabanli CTI-Mobile backend servisidir. Mobil uygulama; login, tehdit listesi, IOC arama, AI ozet, favoriler ve bildirimler icin bu API'yi kullanir.
 
-## Calistirma
+## Ne Ise Yarar?
 
-Once Python 3.11 veya 3.12 kurulu olmali. Terminalde kontrol:
+Backend, mobil uygulamanin guvenli veri katmanidir.
 
-```bash
-python --version
+- Kullaniciyi login eder ve JWT token uretir.
+- CTI tehditlerini ve IOC kayitlarini PostgreSQL'den okur.
+- AI tehdit ozeti uretir ve kaydeder.
+- Favorileri ve bildirimleri kullanici bazli tutar.
+- Swagger ile API test ekrani sunar.
+
+## Gereksinimler
+
+- Python 3.11
+- Docker Desktop
+- PostgreSQL container'i
+- Git
+
+Windows'ta `python` komutu bulunmazsa proje icindeki sanal ortam Python'unu kullan:
+
+```powershell
+.\.venv\Scripts\python.exe
 ```
 
-Komut bulunamazsa Python'u kurup "Add Python to PATH" secenegini isaretle.
+## Ilk Kurulum
 
-Sanal ortam olustur:
+Backend klasorune gec:
 
-```bash
+```powershell
+cd "C:\Users\Lenovo\Documents\Codex\2026-07-07\s-per-bence-art-k-bu\outputs\CTI-Mobile\backend"
+```
+
+Sanal ortam yoksa olustur:
+
+```powershell
 python -m venv .venv
 ```
 
-Bu komut proje icin izole bir Python alani olusturur. Boylece bu projenin paketleri bilgisayarindaki diger Python projelerini bozmaz.
-
-Sanal ortami aktif et:
-
-```bash
-.venv\Scripts\activate
-```
-
-Bu komuttan sonra terminalin basinda `(.venv)` gorursun. Bu, paketleri artik proje icindeki sanal ortama kurdugun anlamina gelir.
+Bu komut proje icin ayri bir Python alani acar. Boylece paketler bilgisayarindaki diger Python projelerini etkilemez.
 
 Paketleri kur:
 
-```bash
-pip install -r requirements.txt
+```powershell
+.\.venv\Scripts\python.exe -m pip install -r requirements.txt
 ```
 
-Bu komut FastAPI, SQLAlchemy, Alembic ve test paketlerini kurar.
+Bu komut FastAPI, SQLAlchemy, Alembic, PostgreSQL surucusu ve auth paketlerini kurar.
 
-API'yi baslat:
+## PostgreSQL'i Baslatma
 
-```bash
-uvicorn app.main:app --reload
+Proje kok klasorune gec:
+
+```powershell
+cd "C:\Users\Lenovo\Documents\Codex\2026-07-07\s-per-bence-art-k-bu\outputs\CTI-Mobile"
 ```
 
-Bu komut backend'i calistirir. `--reload`, kod degisince sunucunun kendini yenilemesini saglar.
+PostgreSQL container'ini baslat:
 
-API calistiktan sonra:
-
-- Health: http://127.0.0.1:8000/health
-- Docs: http://127.0.0.1:8000/docs
-- Threats: http://127.0.0.1:8000/api/v1/threats
-- IOC search: http://127.0.0.1:8000/api/v1/iocs/search?value=malicious-example.com
-
-## PostgreSQL
-
-Docker kurulduktan sonra proje kok klasorunde PostgreSQL'i baslat:
-
-```bash
+```powershell
 docker compose up -d postgres
 ```
 
-Backend klasorunde migration calistir:
+Bu komut Docker icinde PostgreSQL veritabanini calistirir.
 
-```bash
-alembic upgrade head
+## Veritabani Tablolarini Olusturma
+
+Backend klasorune gec:
+
+```powershell
+cd "C:\Users\Lenovo\Documents\Codex\2026-07-07\s-per-bence-art-k-bu\outputs\CTI-Mobile\backend"
 ```
 
-Bu komut PostgreSQL icinde tabloları olusturur.
+Migration calistir:
 
-Demo CTI verilerini PostgreSQL'e ekle:
-
-```bash
-python -m app.db.seed
+```powershell
+.\.venv\Scripts\python.exe -m alembic upgrade head
 ```
 
-Bu komut `sources`, `threats`, `iocs`, `threat_iocs`, `roles`, `users` ve `user_roles` tablolarina baslangic demo verilerini ekler.
+Bu komut PostgreSQL icinde gerekli tablolari olusturur.
+
+## Demo Verileri Ekleme
+
+```powershell
+.\.venv\Scripts\python.exe -m app.db.seed
+```
+
+Bu komut demo source, threat, IOC, user, role ve notification kayitlarini ekler.
 
 Demo kullanici:
 
@@ -83,27 +97,31 @@ password: ChangeMe123!
 role: cti_analyst
 ```
 
-## Auth Testi
+## Backend'i Calistirma
 
-API'yi baslat:
-
-```bash
-uvicorn app.main:app --reload
+```powershell
+.\.venv\Scripts\python.exe -m uvicorn app.main:app --reload
 ```
 
-Swagger'i ac:
+Bu komut API sunucusunu baslatir. `--reload`, kod degisince backend'in kendini yenilemesini saglar.
+
+Swagger:
 
 ```text
 http://127.0.0.1:8000/docs
 ```
 
-Login endpointini dene:
+Health kontrol:
 
 ```text
-POST /api/v1/auth/login
+http://127.0.0.1:8000/health
 ```
 
-Gonderecegin JSON:
+## Swagger'da Login ve Authorize
+
+1. Swagger'da `POST /api/v1/auth/login` endpointini ac.
+2. `Try it out` butonuna bas.
+3. Su JSON'u gonder:
 
 ```json
 {
@@ -112,91 +130,102 @@ Gonderecegin JSON:
 }
 ```
 
-Basarili cevapta `access_token` gelir. Bu token, mobil uygulamanin sonraki isteklerde kullanicinin giris yaptigini kanitlamak icin saklayacagi degerdir.
+4. Response icindeki `access_token` degerini kopyala.
+5. Sag ustteki `Authorize` butonuna bas.
+6. Kutunun icine sadece token degerini yapistir.
 
-Swagger'da sag ustteki `Authorize` butonuna bas ve token'i su formatta gir:
+Dogru:
 
 ```text
-Bearer ACCESS_TOKEN_DEGERI
+eyJhbGciOiJIUzI1NiIs...
 ```
 
-Sonra profil endpointini dene:
+Yanlis:
+
+```text
+Bearer eyJhbGciOiJIUzI1NiIs...
+Bearer Bearer TOKEN
+```
+
+Swagger zaten tokenin basina `Bearer` ekler.
+
+## Endpoint Test Sirasi
+
+Once login ol ve Authorize yap. Sonra su sirayla test et:
 
 ```text
 GET /api/v1/users/me
-```
-
-Bu endpoint token dogruysa giris yapan kullanicinin profilini dondurur.
-
-`/threats` ve `/iocs/search` endpointleri de token ister. Swagger'da `Authorize` yapmadan denersen `401 Unauthorized` doner; token verdikten sonra tehdit ve IOC verileri gelir.
-
-## AI Ozet Testi
-
-Once token ile `GET /api/v1/threats` calistir ve bir `threat_id` kopyala.
-
-Sonra su endpointi dene:
-
-```text
+GET /api/v1/threats
+GET /api/v1/iocs/search?value=malicious-example.com
 POST /api/v1/ai/threat-summary
-```
-
-Gonderecegin JSON:
-
-```json
-{
-  "threat_id": "THREAT_ID_DEGERI",
-  "summary_type": "short"
-}
-```
-
-Bu endpoint simdilik gercek AI kullanmaz. Mock ozet uretir ve sonucu PostgreSQL'deki `ai_summaries` tablosuna kaydeder. Gercek AI entegrasyonu daha sonra ayni endpointin arkasina eklenecektir.
-
-## Favorites Testi
-
-Once token ile `GET /api/v1/threats` veya `GET /api/v1/iocs/search` calistir ve bir kayit `id` degeri kopyala.
-
-Tehdit favoriye eklemek:
-
-```text
 POST /api/v1/favorites
-```
-
-```json
-{
-  "target_type": "threat",
-  "target_id": "THREAT_ID_DEGERI"
-}
-```
-
-IOC favoriye eklemek:
-
-```json
-{
-  "target_type": "ioc",
-  "target_id": "IOC_ID_DEGERI"
-}
-```
-
-Favorileri listelemek:
-
-```text
 GET /api/v1/favorites
-```
-
-Sadece tehdit favorilerini listelemek:
-
-```text
-GET /api/v1/favorites?target_type=threat
-```
-
-Favoriden cikarmak:
-
-```text
 DELETE /api/v1/favorites/{favorite_id}
+GET /api/v1/notifications
+PATCH /api/v1/notifications/{notification_id}/read
+PATCH /api/v1/notifications/read-all
 ```
 
-Baglanti adresi `.env.example` icinde hazirdir:
+## Endpoint Ozeti
+
+| Endpoint | Ne yapar? | Token gerekli mi? |
+| --- | --- | --- |
+| `GET /health` | Backend ayakta mi kontrol eder. | Hayir |
+| `GET /api/v1/health` | API v1 health kontrolu. | Hayir |
+| `POST /api/v1/auth/login` | Email ve parola ile token verir. | Hayir |
+| `GET /api/v1/users/me` | Giris yapan kullaniciyi getirir. | Evet |
+| `GET /api/v1/threats` | Tehdit listesini getirir. | Evet |
+| `GET /api/v1/threats/{threat_id}` | Tek tehdit detayini getirir. | Evet |
+| `GET /api/v1/iocs/search` | IOC/domain/IP aramasi yapar. | Evet |
+| `POST /api/v1/ai/threat-summary` | Mock AI tehdit ozeti uretir. | Evet |
+| `POST /api/v1/favorites` | Threat veya IOC favoriler. | Evet |
+| `GET /api/v1/favorites` | Favorileri listeler. | Evet |
+| `DELETE /api/v1/favorites/{favorite_id}` | Favoriyi siler. | Evet |
+| `GET /api/v1/notifications` | Bildirimleri listeler. | Evet |
+| `PATCH /api/v1/notifications/{notification_id}/read` | Bir bildirimi okundu yapar. | Evet |
+| `PATCH /api/v1/notifications/read-all` | Tum bildirimleri okundu yapar. | Evet |
+
+## PgAdmin Bilgileri
+
+Docker PostgreSQL baglantisi:
 
 ```text
-DATABASE_URL=postgresql+psycopg://cti_mobile:cti_mobile_password@localhost:5432/cti_mobile
+Host: localhost
+Port: 5432
+Database: cti_mobile
+Username: cti_mobile
+Password: cti_mobile_password
+```
+
+Tablolari gormek icin:
+
+```text
+Servers -> CTI-Mobile Local -> Databases -> cti_mobile -> Schemas -> public -> Tables
+```
+
+## Sik Karsilasilan Durumlar
+
+`401 Unauthorized`:
+
+- Token girilmemistir.
+- Token suresi dolmustur.
+- Authorize kutusuna yanlislikla `Bearer` yazilmistir.
+
+`Docker connection failed`:
+
+- Docker Desktop acik degildir.
+- `docker compose up -d postgres` calistirilmamistir.
+
+`Python bulunamadi`:
+
+- Sistem PATH ayari eksik olabilir.
+- `.\.venv\Scripts\python.exe` kullan.
+
+## Git
+
+Degisiklikleri GitHub'a gondermek icin proje kok klasorunde:
+
+```powershell
+git status
+git push origin main
 ```

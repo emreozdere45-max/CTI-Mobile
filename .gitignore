@@ -13,6 +13,12 @@ Thumbs.db
 *.log
 
 # Mobile
+mobile/node_modules/
+mobile/.expo/
+mobile/.expo-shared/
+mobile/npm-debug.log*
+mobile/yarn-debug.log*
+mobile/yarn-error.log*
 mobile/.dart_tool/
 mobile/build/
 mobile/.flutter-plugins
