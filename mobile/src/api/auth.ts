@@ -1,4 +1,5 @@
 import { API_BASE_URL } from "../config/api";
+import type { AuthSession } from "../types/api";
 
 type LoginResponse = {
   data: {
@@ -14,7 +15,7 @@ type LoginResponse = {
   };
 };
 
-export async function login(email: string, password: string): Promise<LoginResponse> {
+export async function login(email: string, password: string): Promise<AuthSession> {
   const response = await fetch(`${API_BASE_URL}/auth/login`, {
     method: "POST",
     headers: {
@@ -30,5 +31,11 @@ export async function login(email: string, password: string): Promise<LoginRespo
     throw new Error(message);
   }
 
-  return response.json();
+  const body = (await response.json()) as LoginResponse;
+  return {
+    accessToken: body.data.access_token,
+    tokenType: body.data.token_type,
+    expiresIn: body.data.expires_in,
+    user: body.data.user,
+  };
 }

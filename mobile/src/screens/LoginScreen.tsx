@@ -13,22 +13,25 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { login } from "../api/auth";
+import type { AuthSession } from "../types/api";
 
-export function LoginScreen() {
+type LoginScreenProps = {
+  onLoginSuccess: (session: AuthSession) => void;
+};
+
+export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
   const [email, setEmail] = useState("analyst@example.com");
   const [password, setPassword] = useState("ChangeMe123!");
   const [isLoading, setIsLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
-  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   async function handleLogin() {
     setIsLoading(true);
     setErrorMessage(null);
-    setSuccessMessage(null);
 
     try {
       const result = await login(email.trim(), password);
-      setSuccessMessage(`Giris basarili: ${result.data.user.full_name}`);
+      onLoginSuccess(result);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Beklenmeyen bir hata olustu.");
     } finally {
@@ -79,8 +82,6 @@ export function LoginScreen() {
           </View>
 
           {errorMessage ? <Text style={styles.error}>{errorMessage}</Text> : null}
-          {successMessage ? <Text style={styles.success}>{successMessage}</Text> : null}
-
           <Pressable
             disabled={isLoading}
             onPress={handleLogin}
@@ -188,14 +189,6 @@ const styles = StyleSheet.create({
     borderRadius: 8,
     borderWidth: 1,
     color: "#ffd9df",
-    padding: 12,
-  },
-  success: {
-    backgroundColor: "#123222",
-    borderColor: "#2f8756",
-    borderRadius: 8,
-    borderWidth: 1,
-    color: "#d7ffe7",
     padding: 12,
   },
 });
