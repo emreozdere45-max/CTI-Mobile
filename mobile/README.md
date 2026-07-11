@@ -1,6 +1,6 @@
 # CTI-Mobile Mobile
 
-Expo/React Native mobil uygulama iskeleti.
+Expo/React Native mobil uygulama iskeleti. Bu proje Expo SDK 54 ile calisir.
 
 ## Ne Yapiyor?
 
