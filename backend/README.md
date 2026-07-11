@@ -151,6 +151,50 @@ Gonderecegin JSON:
 
 Bu endpoint simdilik gercek AI kullanmaz. Mock ozet uretir ve sonucu PostgreSQL'deki `ai_summaries` tablosuna kaydeder. Gercek AI entegrasyonu daha sonra ayni endpointin arkasina eklenecektir.
 
+## Favorites Testi
+
+Once token ile `GET /api/v1/threats` veya `GET /api/v1/iocs/search` calistir ve bir kayit `id` degeri kopyala.
+
+Tehdit favoriye eklemek:
+
+```text
+POST /api/v1/favorites
+```
+
+```json
+{
+  "target_type": "threat",
+  "target_id": "THREAT_ID_DEGERI"
+}
+```
+
+IOC favoriye eklemek:
+
+```json
+{
+  "target_type": "ioc",
+  "target_id": "IOC_ID_DEGERI"
+}
+```
+
+Favorileri listelemek:
+
+```text
+GET /api/v1/favorites
+```
+
+Sadece tehdit favorilerini listelemek:
+
+```text
+GET /api/v1/favorites?target_type=threat
+```
+
+Favoriden cikarmak:
+
+```text
+DELETE /api/v1/favorites/{favorite_id}
+```
+
 Baglanti adresi `.env.example` icinde hazirdir:
 
 ```text
