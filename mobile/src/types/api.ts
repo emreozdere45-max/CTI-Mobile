@@ -46,6 +46,6 @@ export type Favorite = {
   id: string;
   target_type: FavoriteTargetType;
   target_id: string;
-  target: Record<string, unknown>;
+  target: Partial<Threat> & Record<string, unknown>;
   created_at: string;
 };

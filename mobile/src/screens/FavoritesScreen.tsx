@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useEffect, useMemo, useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -11,13 +11,12 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { listThreats } from "../api/threats";
-import type { AuthSession, Threat } from "../types/api";
+import { listFavorites } from "../api/favorites";
+import type { AuthSession, Favorite, Threat } from "../types/api";
 
-type ThreatsScreenProps = {
+type FavoritesScreenProps = {
   session: AuthSession;
-  onLogout: () => void;
-  onOpenFavorites: () => void;
+  onBack: () => void;
   onSelectThreat: (threat: Threat) => void;
 };
 
@@ -29,23 +28,13 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
-export function ThreatsScreen({
-  session,
-  onLogout,
-  onOpenFavorites,
-  onSelectThreat,
-}: ThreatsScreenProps) {
-  const [threats, setThreats] = useState<Threat[]>([]);
+export function FavoritesScreen({ session, onBack, onSelectThreat }: FavoritesScreenProps) {
+  const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const criticalCount = useMemo(
-    () => threats.filter((threat) => threat.severity === "critical").length,
-    [threats],
-  );
-
-  async function loadThreats(isRefresh = false) {
+  async function loadFavorites(isRefresh = false) {
     if (isRefresh) {
       setIsRefreshing(true);
     } else {
@@ -54,10 +43,10 @@ export function ThreatsScreen({
     setErrorMessage(null);
 
     try {
-      const result = await listThreats(session.accessToken);
-      setThreats(result.data);
+      const result = await listFavorites(session.accessToken, "threat");
+      setFavorites(result.data);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Threats could not be loaded.");
+      setErrorMessage(error instanceof Error ? error.message : "Favorites could not be loaded.");
     } finally {
       setIsLoading(false);
       setIsRefreshing(false);
@@ -65,38 +54,21 @@ export function ThreatsScreen({
   }
 
   useEffect(() => {
-    void loadThreats();
+    void loadFavorites();
   }, []);
 
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
         <View style={styles.header}>
-          <View>
-            <Text style={styles.eyebrow}>CTI dashboard</Text>
-            <Text style={styles.title}>Threats</Text>
-            <Text style={styles.subtitle}>{session.user.full_name}</Text>
+          <Pressable onPress={onBack} style={styles.iconButton}>
+            <Ionicons name="arrow-back" size={22} color="#d7e2f0" />
+          </Pressable>
+          <View style={styles.headerText}>
+            <Text style={styles.eyebrow}>Saved intelligence</Text>
+            <Text style={styles.title}>Favorites</Text>
           </View>
-
-          <View style={styles.headerActions}>
-            <Pressable onPress={onOpenFavorites} style={styles.iconButton}>
-              <Ionicons name="star-outline" size={22} color="#d7e2f0" />
-            </Pressable>
-            <Pressable onPress={onLogout} style={styles.iconButton}>
-              <Ionicons name="log-out-outline" size={22} color="#d7e2f0" />
-            </Pressable>
-          </View>
-        </View>
-
-        <View style={styles.statsRow}>
-          <View style={styles.statBox}>
-            <Text style={styles.statValue}>{threats.length}</Text>
-            <Text style={styles.statLabel}>Total</Text>
-          </View>
-          <View style={styles.statBox}>
-            <Text style={[styles.statValue, styles.criticalValue]}>{criticalCount}</Text>
-            <Text style={styles.statLabel}>Critical</Text>
-          </View>
+          <View style={styles.iconButtonPlaceholder} />
         </View>
 
         {errorMessage ? (
@@ -108,22 +80,23 @@ export function ThreatsScreen({
         {isLoading ? (
           <View style={styles.loadingBox}>
             <ActivityIndicator color="#58d68d" />
-            <Text style={styles.loadingText}>Loading threats</Text>
+            <Text style={styles.loadingText}>Loading favorites</Text>
           </View>
         ) : (
           <FlatList
+            ListEmptyComponent={<EmptyState />}
             contentContainerStyle={styles.listContent}
-            data={threats}
+            data={favorites}
             keyExtractor={(item) => item.id}
             refreshControl={
               <RefreshControl
-                onRefresh={() => void loadThreats(true)}
+                onRefresh={() => void loadFavorites(true)}
                 refreshing={isRefreshing}
                 tintColor="#58d68d"
               />
             }
             renderItem={({ item }) => (
-              <ThreatCard onPress={() => onSelectThreat(item)} threat={item} />
+              <FavoriteCard favorite={item} onPress={() => onSelectThreat(toThreat(item))} />
             )}
           />
         )}
@@ -132,7 +105,23 @@ export function ThreatsScreen({
   );
 }
 
-function ThreatCard({ onPress, threat }: { onPress: () => void; threat: Threat }) {
+function toThreat(favorite: Favorite): Threat {
+  return {
+    id: favorite.target_id,
+    title: typeof favorite.target.title === "string" ? favorite.target.title : "Untitled threat",
+    summary: typeof favorite.target.summary === "string" ? favorite.target.summary : "",
+    severity: typeof favorite.target.severity === "string" ? favorite.target.severity : "info",
+    confidence_score:
+      typeof favorite.target.confidence_score === "number" ? favorite.target.confidence_score : 0,
+    source: undefined,
+    tags: [],
+    published_at: favorite.created_at,
+    is_favorite: true,
+  };
+}
+
+function FavoriteCard({ favorite, onPress }: { favorite: Favorite; onPress: () => void }) {
+  const threat = toThreat(favorite);
   const severityColor = severityColors[threat.severity] ?? "#9fb0c7";
 
   return (
@@ -141,19 +130,26 @@ function ThreatCard({ onPress, threat }: { onPress: () => void; threat: Threat }
       style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.severityDot, { backgroundColor: severityColor }]} />
+        <Ionicons name="star" size={17} color="#58d68d" />
         <Text style={[styles.severityText, { color: severityColor }]}>{threat.severity}</Text>
       </View>
-
       <Text style={styles.cardTitle}>{threat.title}</Text>
       <Text style={styles.cardSummary}>{threat.summary}</Text>
-
       <View style={styles.cardFooter}>
-        <Text style={styles.metaText}>{threat.confidence_score}% confidence</Text>
-        <Text style={styles.metaText}>{threat.tags.slice(0, 2).join(" / ")}</Text>
+        <Text style={styles.metaText}>Saved threat</Text>
         <Ionicons name="chevron-forward" size={16} color="#9fb0c7" />
       </View>
     </Pressable>
+  );
+}
+
+function EmptyState() {
+  return (
+    <View style={styles.emptyBox}>
+      <Ionicons name="star-outline" size={30} color="#9fb0c7" />
+      <Text style={styles.emptyTitle}>No favorites yet</Text>
+      <Text style={styles.emptyText}>Open a threat detail and tap the star button.</Text>
+    </View>
   );
 }
 
@@ -165,30 +161,28 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     paddingHorizontal: 20,
-    paddingTop: 18,
+    paddingTop: 12,
   },
   header: {
     alignItems: "center",
     flexDirection: "row",
     justifyContent: "space-between",
-    marginBottom: 18,
+    marginBottom: 16,
+  },
+  headerText: {
+    alignItems: "center",
   },
   eyebrow: {
     color: "#58d68d",
-    fontSize: 13,
+    fontSize: 12,
     fontWeight: "800",
     textTransform: "uppercase",
   },
   title: {
     color: "#f7fbff",
-    fontSize: 34,
+    fontSize: 26,
     fontWeight: "800",
     letterSpacing: 0,
-  },
-  subtitle: {
-    color: "#9fb0c7",
-    fontSize: 14,
-    marginTop: 2,
   },
   iconButton: {
     alignItems: "center",
@@ -196,39 +190,13 @@ const styles = StyleSheet.create({
     borderColor: "#263a55",
     borderRadius: 8,
     borderWidth: 1,
-    height: 46,
+    height: 44,
     justifyContent: "center",
-    width: 46,
+    width: 44,
   },
-  headerActions: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  statsRow: {
-    flexDirection: "row",
-    gap: 12,
-    marginBottom: 14,
-  },
-  statBox: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
-    borderRadius: 8,
-    borderWidth: 1,
-    flex: 1,
-    padding: 14,
-  },
-  statValue: {
-    color: "#f7fbff",
-    fontSize: 26,
-    fontWeight: "800",
-  },
-  criticalValue: {
-    color: "#ff6b6b",
-  },
-  statLabel: {
-    color: "#9fb0c7",
-    fontSize: 13,
-    marginTop: 2,
+  iconButtonPlaceholder: {
+    height: 44,
+    width: 44,
   },
   errorBox: {
     backgroundColor: "#3b1620",
@@ -270,11 +238,6 @@ const styles = StyleSheet.create({
     gap: 8,
     marginBottom: 8,
   },
-  severityDot: {
-    borderRadius: 5,
-    height: 10,
-    width: 10,
-  },
   severityText: {
     fontSize: 12,
     fontWeight: "800",
@@ -295,12 +258,30 @@ const styles = StyleSheet.create({
   cardFooter: {
     alignItems: "center",
     flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 10,
+    gap: 8,
     marginTop: 12,
   },
   metaText: {
     color: "#9fb0c7",
     fontSize: 12,
+  },
+  emptyBox: {
+    alignItems: "center",
+    backgroundColor: "#0d1b2d",
+    borderColor: "#263a55",
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+    padding: 24,
+  },
+  emptyTitle: {
+    color: "#f7fbff",
+    fontSize: 17,
+    fontWeight: "800",
+  },
+  emptyText: {
+    color: "#9fb0c7",
+    fontSize: 14,
+    textAlign: "center",
   },
 });
