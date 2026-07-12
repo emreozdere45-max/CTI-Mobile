@@ -70,6 +70,7 @@ export type IocSearchResult = {
   risk_score: number;
   confidence_score: number;
   related_threat_count: number;
+  related_threats?: Threat[];
 };
 
 export type IocSearchData = {

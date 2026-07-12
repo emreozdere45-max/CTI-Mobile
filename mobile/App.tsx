@@ -34,7 +34,11 @@ export default function App() {
       ) : session && activeScreen === "notifications" ? (
         <NotificationsScreen onBack={() => setActiveScreen("threats")} session={session} />
       ) : session && activeScreen === "iocSearch" ? (
-        <IocSearchScreen onBack={() => setActiveScreen("threats")} session={session} />
+        <IocSearchScreen
+          onBack={() => setActiveScreen("threats")}
+          onSelectThreat={setSelectedThreat}
+          session={session}
+        />
       ) : session ? (
         <ThreatsScreen
           onOpenFavorites={() => setActiveScreen("favorites")}

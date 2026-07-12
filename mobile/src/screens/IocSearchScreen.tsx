@@ -13,11 +13,12 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createFavorite, deleteFavorite, listFavorites } from "../api/favorites";
 import { searchIocs } from "../api/iocs";
-import type { AuthSession, IocSearchData, IocSearchResult } from "../types/api";
+import type { AuthSession, IocSearchData, IocSearchResult, Threat } from "../types/api";
 
 type IocSearchScreenProps = {
   session: AuthSession;
   onBack: () => void;
+  onSelectThreat: (threat: Threat) => void;
 };
 
 const riskColors = {
@@ -28,7 +29,7 @@ const riskColors = {
 
 const typeOptions = ["auto", "domain", "ip", "url", "hash", "email"];
 
-export function IocSearchScreen({ session, onBack }: IocSearchScreenProps) {
+export function IocSearchScreen({ session, onBack, onSelectThreat }: IocSearchScreenProps) {
   const [query, setQuery] = useState("malicious-example.com");
   const [selectedType, setSelectedType] = useState("auto");
   const [result, setResult] = useState<IocSearchData | null>(null);
@@ -201,6 +202,12 @@ export function IocSearchScreen({ session, onBack }: IocSearchScreenProps) {
             <IocResultCard
               isFavorite={Boolean(favoriteIdsByIocId[item.id])}
               isUpdatingFavorite={updatingFavoriteId === item.id}
+              onOpenThreat={() => {
+                const firstThreat = item.related_threats?.[0];
+                if (firstThreat) {
+                  onSelectThreat(firstThreat);
+                }
+              }}
               onToggleFavorite={() => void handleToggleFavorite(item)}
               result={item}
             />
@@ -214,32 +221,47 @@ export function IocSearchScreen({ session, onBack }: IocSearchScreenProps) {
 function IocResultCard({
   isFavorite,
   isUpdatingFavorite,
+  onOpenThreat,
   onToggleFavorite,
   result,
 }: {
   isFavorite: boolean;
   isUpdatingFavorite: boolean;
+  onOpenThreat: () => void;
   onToggleFavorite: () => void;
   result: IocSearchResult;
 }) {
   const riskLevel = result.risk_score >= 80 ? "high" : result.risk_score >= 50 ? "medium" : "low";
   const riskColor = riskColors[riskLevel];
+  const hasRelatedThreat = Boolean(result.related_threats?.length);
 
   return (
-    <Pressable
-      disabled={isUpdatingFavorite}
-      onPress={onToggleFavorite}
-      style={({ pressed }) => [
+    <View
+      style={[
         styles.card,
         isFavorite ? styles.cardFavorite : null,
-        pressed && !isUpdatingFavorite ? styles.cardPressed : null,
+        !hasRelatedThreat ? styles.cardDisabled : null,
       ]}
     >
       <View style={styles.cardHeader}>
-        <View style={[styles.riskDot, { backgroundColor: riskColor }]} />
-        <Text style={[styles.riskText, { color: riskColor }]}>{riskLevel} risk</Text>
-        <Text style={styles.typeBadge}>{result.type}</Text>
-        <View style={[styles.favoriteIconButton, isFavorite ? styles.favoriteIconButtonActive : null]}>
+        <Pressable
+          disabled={!hasRelatedThreat}
+          onPress={onOpenThreat}
+          style={({ pressed }) => [styles.cardHeaderMain, pressed ? styles.cardPressed : null]}
+        >
+          <View style={[styles.riskDot, { backgroundColor: riskColor }]} />
+          <Text style={[styles.riskText, { color: riskColor }]}>{riskLevel} risk</Text>
+          <Text style={styles.typeBadge}>{result.type}</Text>
+        </Pressable>
+        <Pressable
+          disabled={isUpdatingFavorite}
+          onPress={onToggleFavorite}
+          style={({ pressed }) => [
+            styles.favoriteIconButton,
+            isFavorite ? styles.favoriteIconButtonActive : null,
+            pressed && !isUpdatingFavorite ? styles.favoriteIconButtonPressed : null,
+          ]}
+        >
           {isUpdatingFavorite ? (
             <ActivityIndicator color={isFavorite ? "#06111f" : "#58d68d"} size="small" />
           ) : (
@@ -249,32 +271,38 @@ function IocResultCard({
               color={isFavorite ? "#06111f" : "#58d68d"}
             />
           )}
-        </View>
+        </Pressable>
       </View>
 
-      <Text selectable style={styles.iocValue}>
-        {result.value}
-      </Text>
+      <Pressable
+        disabled={!hasRelatedThreat}
+        onPress={onOpenThreat}
+        style={({ pressed }) => (pressed ? styles.cardPressed : null)}
+      >
+        <Text selectable style={styles.iocValue}>
+          {result.value}
+        </Text>
 
-      <Text style={[styles.favoriteHint, isFavorite ? styles.favoriteHintActive : null]}>
-        {isFavorite ? "Saved IOC" : "Tap card to save IOC"}
-      </Text>
+        <Text style={[styles.favoriteHint, isFavorite ? styles.favoriteHintActive : null]}>
+          {hasRelatedThreat ? "Tap card to open related threat" : "No related threat to open"}
+        </Text>
 
-      <View style={styles.scoreGrid}>
-        <View style={styles.scoreBox}>
-          <Text style={styles.scoreValue}>{result.risk_score}</Text>
-          <Text style={styles.scoreLabel}>Risk</Text>
+        <View style={styles.scoreGrid}>
+          <View style={styles.scoreBox}>
+            <Text style={styles.scoreValue}>{result.risk_score}</Text>
+            <Text style={styles.scoreLabel}>Risk</Text>
+          </View>
+          <View style={styles.scoreBox}>
+            <Text style={styles.scoreValue}>{result.confidence_score}</Text>
+            <Text style={styles.scoreLabel}>Confidence</Text>
+          </View>
+          <View style={styles.scoreBox}>
+            <Text style={styles.scoreValue}>{result.related_threat_count}</Text>
+            <Text style={styles.scoreLabel}>Threats</Text>
+          </View>
         </View>
-        <View style={styles.scoreBox}>
-          <Text style={styles.scoreValue}>{result.confidence_score}</Text>
-          <Text style={styles.scoreLabel}>Confidence</Text>
-        </View>
-        <View style={styles.scoreBox}>
-          <Text style={styles.scoreValue}>{result.related_threat_count}</Text>
-          <Text style={styles.scoreLabel}>Threats</Text>
-        </View>
-      </View>
-    </Pressable>
+      </Pressable>
+    </View>
   );
 }
 
@@ -463,6 +491,9 @@ const styles = StyleSheet.create({
   cardFavorite: {
     borderColor: "#58d68d",
   },
+  cardDisabled: {
+    opacity: 0.78,
+  },
   cardPressed: {
     opacity: 0.82,
   },
@@ -471,6 +502,12 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     marginBottom: 10,
+  },
+  cardHeaderMain: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    gap: 8,
   },
   riskDot: {
     borderRadius: 5,
@@ -504,6 +541,9 @@ const styles = StyleSheet.create({
   },
   favoriteIconButtonActive: {
     backgroundColor: "#58d68d",
+  },
+  favoriteIconButtonPressed: {
+    opacity: 0.72,
   },
   iocValue: {
     color: "#f7fbff",

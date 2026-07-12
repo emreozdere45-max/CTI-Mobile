@@ -4,7 +4,7 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models import IOC, ThreatIOC, User
+from app.models import IOC, Threat, ThreatIOC, User
 
 router = APIRouter()
 
@@ -44,6 +44,13 @@ def search_iocs(
         related_threat_count = db.scalar(
             select(func.count()).select_from(ThreatIOC).where(ThreatIOC.ioc_id == ioc.id)
         )
+        related_threats = db.scalars(
+            select(Threat)
+            .join(ThreatIOC, ThreatIOC.threat_id == Threat.id)
+            .where(ThreatIOC.ioc_id == ioc.id)
+            .order_by(Threat.published_at.desc().nullslast(), Threat.created_at.desc())
+            .limit(3)
+        ).all()
         results.append(
             {
                 "id": str(ioc.id),
@@ -52,6 +59,27 @@ def search_iocs(
                 "risk_score": ioc.risk_score,
                 "confidence_score": ioc.confidence_score,
                 "related_threat_count": related_threat_count,
+                "related_threats": [
+                    {
+                        "id": str(threat.id),
+                        "title": threat.title,
+                        "summary": threat.summary,
+                        "severity": threat.severity,
+                        "confidence_score": threat.confidence_score,
+                        "source": {
+                            "id": str(threat.source.id),
+                            "name": threat.source.name,
+                        }
+                        if threat.source
+                        else None,
+                        "tags": threat.tags,
+                        "published_at": threat.published_at.isoformat()
+                        if threat.published_at
+                        else threat.created_at.isoformat(),
+                        "is_favorite": False,
+                    }
+                    for threat in related_threats
+                ],
             }
         )
 
