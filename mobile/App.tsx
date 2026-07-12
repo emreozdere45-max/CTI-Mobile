@@ -4,6 +4,7 @@ import { SafeAreaProvider } from "react-native-safe-area-context";
 
 import { FavoritesScreen } from "./src/screens/FavoritesScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
+import { NotificationsScreen } from "./src/screens/NotificationsScreen";
 import { ThreatDetailScreen } from "./src/screens/ThreatDetailScreen";
 import { ThreatsScreen } from "./src/screens/ThreatsScreen";
 import type { AuthSession, Threat } from "./src/types/api";
@@ -11,7 +12,9 @@ import type { AuthSession, Threat } from "./src/types/api";
 export default function App() {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
-  const [activeScreen, setActiveScreen] = useState<"threats" | "favorites">("threats");
+  const [activeScreen, setActiveScreen] = useState<"threats" | "favorites" | "notifications">(
+    "threats",
+  );
 
   return (
     <SafeAreaProvider>
@@ -27,9 +30,12 @@ export default function App() {
           onSelectThreat={setSelectedThreat}
           session={session}
         />
+      ) : session && activeScreen === "notifications" ? (
+        <NotificationsScreen onBack={() => setActiveScreen("threats")} session={session} />
       ) : session ? (
         <ThreatsScreen
           onOpenFavorites={() => setActiveScreen("favorites")}
+          onOpenNotifications={() => setActiveScreen("notifications")}
           onLogout={() => {
             setSelectedThreat(null);
             setActiveScreen("threats");

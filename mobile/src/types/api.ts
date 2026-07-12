@@ -49,3 +49,16 @@ export type Favorite = {
   target: Partial<Threat> & Record<string, unknown>;
   created_at: string;
 };
+
+export type Notification = {
+  id: string;
+  notification_type: string;
+  title: string;
+  message: string;
+  severity: "critical" | "high" | "medium" | "low" | "info" | string;
+  target_type: string | null;
+  target_id: string | null;
+  is_read: boolean;
+  read_at: string | null;
+  created_at: string;
+};

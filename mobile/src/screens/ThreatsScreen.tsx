@@ -18,6 +18,7 @@ type ThreatsScreenProps = {
   session: AuthSession;
   onLogout: () => void;
   onOpenFavorites: () => void;
+  onOpenNotifications: () => void;
   onSelectThreat: (threat: Threat) => void;
 };
 
@@ -33,6 +34,7 @@ export function ThreatsScreen({
   session,
   onLogout,
   onOpenFavorites,
+  onOpenNotifications,
   onSelectThreat,
 }: ThreatsScreenProps) {
   const [threats, setThreats] = useState<Threat[]>([]);
@@ -79,6 +81,9 @@ export function ThreatsScreen({
           </View>
 
           <View style={styles.headerActions}>
+            <Pressable onPress={onOpenNotifications} style={styles.iconButton}>
+              <Ionicons name="notifications-outline" size={22} color="#d7e2f0" />
+            </Pressable>
             <Pressable onPress={onOpenFavorites} style={styles.iconButton}>
               <Ionicons name="star-outline" size={22} color="#d7e2f0" />
             </Pressable>
