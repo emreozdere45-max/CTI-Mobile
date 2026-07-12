@@ -46,3 +46,12 @@ def get_current_user(
         )
 
     return user
+
+
+def require_roles(user: User, allowed_roles: set[str]) -> None:
+    user_roles = {role.name for role in user.roles}
+    if user_roles.isdisjoint(allowed_roles):
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="You do not have permission to perform this action",
+        )
