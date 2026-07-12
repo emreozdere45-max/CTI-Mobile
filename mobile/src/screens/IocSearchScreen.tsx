@@ -1,5 +1,5 @@
 import { Ionicons } from "@expo/vector-icons";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   FlatList,
@@ -17,8 +17,17 @@ import type { AuthSession, IocSearchData, IocSearchResult, Threat } from "../typ
 
 type IocSearchScreenProps = {
   session: AuthSession;
+  initialState: IocSearchScreenState | null;
   onBack: () => void;
   onSelectThreat: (threat: Threat) => void;
+  onStateChange: (state: IocSearchScreenState) => void;
+};
+
+export type IocSearchScreenState = {
+  favoriteIdsByIocId: Record<string, string>;
+  query: string;
+  result: IocSearchData | null;
+  selectedType: string;
 };
 
 const riskColors = {
@@ -29,15 +38,32 @@ const riskColors = {
 
 const typeOptions = ["auto", "domain", "ip", "url", "hash", "email"];
 
-export function IocSearchScreen({ session, onBack, onSelectThreat }: IocSearchScreenProps) {
-  const [query, setQuery] = useState("malicious-example.com");
-  const [selectedType, setSelectedType] = useState("auto");
-  const [result, setResult] = useState<IocSearchData | null>(null);
-  const [favoriteIdsByIocId, setFavoriteIdsByIocId] = useState<Record<string, string>>({});
+export function IocSearchScreen({
+  session,
+  initialState,
+  onBack,
+  onSelectThreat,
+  onStateChange,
+}: IocSearchScreenProps) {
+  const [query, setQuery] = useState(initialState?.query ?? "malicious-example.com");
+  const [selectedType, setSelectedType] = useState(initialState?.selectedType ?? "auto");
+  const [result, setResult] = useState<IocSearchData | null>(initialState?.result ?? null);
+  const [favoriteIdsByIocId, setFavoriteIdsByIocId] = useState<Record<string, string>>(
+    initialState?.favoriteIdsByIocId ?? {},
+  );
   const [isLoading, setIsLoading] = useState(false);
   const [updatingFavoriteId, setUpdatingFavoriteId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    onStateChange({
+      favoriteIdsByIocId,
+      query,
+      result,
+      selectedType,
+    });
+  }, [favoriteIdsByIocId, onStateChange, query, result, selectedType]);
 
   async function handleSearch() {
     const trimmedQuery = query.trim();
