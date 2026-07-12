@@ -39,3 +39,13 @@ export type ThreatDetail = Threat & {
   iocs: ThreatIOC[];
   recommended_actions: string[];
 };
+
+export type FavoriteTargetType = "threat" | "ioc";
+
+export type Favorite = {
+  id: string;
+  target_type: FavoriteTargetType;
+  target_id: string;
+  target: Record<string, unknown>;
+  created_at: string;
+};

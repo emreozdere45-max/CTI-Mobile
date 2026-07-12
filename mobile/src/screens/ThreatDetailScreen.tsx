@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { createFavorite, deleteFavorite, listFavorites } from "../api/favorites";
 import { getThreatDetail } from "../api/threats";
 import type { AuthSession, Threat, ThreatDetail } from "../types/api";
 
@@ -29,8 +30,11 @@ const severityColors: Record<string, string> = {
 
 export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScreenProps) {
   const [detail, setDetail] = useState<ThreatDetail | null>(null);
+  const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
 
   const severityColor = severityColors[(detail ?? threat).severity] ?? "#9fb0c7";
 
@@ -41,6 +45,9 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
     try {
       const result = await getThreatDetail(session.accessToken, threat.id);
       setDetail(result.data);
+      const favoriteResult = await listFavorites(session.accessToken, "threat");
+      const currentFavorite = favoriteResult.data.find((favorite) => favorite.target_id === threat.id);
+      setFavoriteId(currentFavorite?.id ?? null);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Threat detail could not be loaded.");
     } finally {
@@ -52,6 +59,28 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
     void loadDetail();
   }, [threat.id]);
 
+  async function handleFavoritePress() {
+    setIsFavoriteLoading(true);
+    setFavoriteMessage(null);
+    setErrorMessage(null);
+
+    try {
+      if (favoriteId) {
+        await deleteFavorite(session.accessToken, favoriteId);
+        setFavoriteId(null);
+        setFavoriteMessage("Favoriden cikarildi.");
+      } else {
+        const result = await createFavorite(session.accessToken, "threat", threat.id);
+        setFavoriteId(result.data.id);
+        setFavoriteMessage("Favorilere eklendi.");
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Favorite action failed.");
+    } finally {
+      setIsFavoriteLoading(false);
+    }
+  }
+
   return (
     <SafeAreaView style={styles.safeArea}>
       <View style={styles.container}>
@@ -60,7 +89,25 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
             <Ionicons name="arrow-back" size={22} color="#d7e2f0" />
           </Pressable>
           <Text style={styles.headerTitle}>Threat detail</Text>
-          <View style={styles.iconButtonPlaceholder} />
+          <Pressable
+            disabled={isFavoriteLoading || isLoading}
+            onPress={handleFavoritePress}
+            style={({ pressed }) => [
+              styles.iconButton,
+              favoriteId ? styles.favoriteButtonActive : null,
+              pressed && !isFavoriteLoading ? styles.iconButtonPressed : null,
+            ]}
+          >
+            {isFavoriteLoading ? (
+              <ActivityIndicator color="#06111f" size="small" />
+            ) : (
+              <Ionicons
+                name={favoriteId ? "star" : "star-outline"}
+                size={22}
+                color={favoriteId ? "#06111f" : "#d7e2f0"}
+              />
+            )}
+          </Pressable>
         </View>
 
         {isLoading ? (
@@ -73,6 +120,12 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
             {errorMessage ? (
               <View style={styles.errorBox}>
                 <Text style={styles.errorText}>{errorMessage}</Text>
+              </View>
+            ) : null}
+
+            {favoriteMessage ? (
+              <View style={styles.successBox}>
+                <Text style={styles.successText}>{favoriteMessage}</Text>
               </View>
             ) : null}
 
@@ -191,6 +244,13 @@ const styles = StyleSheet.create({
     justifyContent: "center",
     width: 44,
   },
+  iconButtonPressed: {
+    opacity: 0.82,
+  },
+  favoriteButtonActive: {
+    backgroundColor: "#58d68d",
+    borderColor: "#58d68d",
+  },
   iconButtonPlaceholder: {
     height: 44,
     width: 44,
@@ -217,6 +277,16 @@ const styles = StyleSheet.create({
   },
   errorText: {
     color: "#ffd9df",
+  },
+  successBox: {
+    backgroundColor: "#123222",
+    borderColor: "#2f8756",
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+  },
+  successText: {
+    color: "#d7ffe7",
   },
   summaryPanel: {
     backgroundColor: "#0d1b2d",
