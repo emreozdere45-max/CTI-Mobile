@@ -33,7 +33,7 @@ export function LoginScreen({ onLoginSuccess }: LoginScreenProps) {
       const result = await login(email.trim(), password);
       onLoginSuccess(result);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Beklenmeyen bir hata olustu.");
+      setErrorMessage(error instanceof Error ? error.message : "Unexpected error.");
     } finally {
       setIsLoading(false);
     }

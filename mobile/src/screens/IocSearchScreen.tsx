@@ -68,7 +68,7 @@ export function IocSearchScreen({
   async function handleSearch() {
     const trimmedQuery = query.trim();
     if (trimmedQuery.length < 2) {
-      setErrorMessage("En az 2 karakterlik bir IOC degeri yazmalisin.");
+      setErrorMessage("Enter at least 2 characters.");
       return;
     }
 
@@ -114,14 +114,14 @@ export function IocSearchScreen({
           delete next[ioc.id];
           return next;
         });
-        setSuccessMessage("IOC favorilerden cikarildi.");
+        setSuccessMessage("IOC removed from favorites.");
       } else {
         const response = await createFavorite(session.accessToken, "ioc", ioc.id);
         setFavoriteIdsByIocId((current) => ({
           ...current,
           [ioc.id]: response.data.id,
         }));
-        setSuccessMessage("IOC favorilere eklendi.");
+        setSuccessMessage("IOC saved to favorites.");
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Favorite action failed.");
@@ -339,8 +339,8 @@ function EmptyState({ hasSearched }: { hasSearched: boolean }) {
       <Text style={styles.emptyTitle}>{hasSearched ? "No IOC found" : "Ready to search"}</Text>
       <Text style={styles.emptyText}>
         {hasSearched
-          ? "Bu IOC veritabaninda eslesmedi."
-          : "Bir domain, IP, URL, hash veya e-posta girerek arama yap."}
+          ? "This IOC was not found in the database."
+          : "Enter a domain, IP, URL, hash, or email to search."}
       </Text>
     </View>
   );

@@ -68,11 +68,11 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
       if (favoriteId) {
         await deleteFavorite(session.accessToken, favoriteId);
         setFavoriteId(null);
-        setFavoriteMessage("Favoriden cikarildi.");
+        setFavoriteMessage("Removed from favorites.");
       } else {
         const result = await createFavorite(session.accessToken, "threat", threat.id);
         setFavoriteId(result.data.id);
-        setFavoriteMessage("Favorilere eklendi.");
+        setFavoriteMessage("Saved to favorites.");
       }
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Favorite action failed.");
