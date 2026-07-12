@@ -17,6 +17,7 @@ import type { AuthSession, Threat } from "../types/api";
 type ThreatsScreenProps = {
   session: AuthSession;
   onLogout: () => void;
+  onOpenCreateThreat: () => void;
   onOpenFavorites: () => void;
   onOpenIocSearch: () => void;
   onOpenNotifications: () => void;
@@ -34,6 +35,7 @@ const severityColors: Record<string, string> = {
 export function ThreatsScreen({
   session,
   onLogout,
+  onOpenCreateThreat,
   onOpenFavorites,
   onOpenIocSearch,
   onOpenNotifications,
@@ -83,6 +85,9 @@ export function ThreatsScreen({
           </View>
 
           <View style={styles.headerActions}>
+            <Pressable onPress={onOpenCreateThreat} style={styles.iconButton}>
+              <Ionicons name="add" size={24} color="#d7e2f0" />
+            </Pressable>
             <Pressable onPress={onOpenNotifications} style={styles.iconButton}>
               <Ionicons name="notifications-outline" size={22} color="#d7e2f0" />
             </Pressable>

@@ -27,6 +27,19 @@ export type Threat = {
   is_favorite: boolean;
 };
 
+export type ThreatCreatePayload = {
+  title: string;
+  summary: string;
+  description: string;
+  severity: "critical" | "high" | "medium" | "low" | "info";
+  confidence_score: number;
+  industry: string | null;
+  region: string | null;
+  tags: string[];
+  source_id: string | null;
+  published_at: string | null;
+};
+
 export type ThreatIOC = {
   id: string;
   type: string;

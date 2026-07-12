@@ -6,6 +6,7 @@ import { FavoritesScreen } from "./src/screens/FavoritesScreen";
 import { IocSearchScreen, type IocSearchScreenState } from "./src/screens/IocSearchScreen";
 import { LoginScreen } from "./src/screens/LoginScreen";
 import { NotificationsScreen } from "./src/screens/NotificationsScreen";
+import { CreateThreatScreen } from "./src/screens/CreateThreatScreen";
 import { ThreatDetailScreen } from "./src/screens/ThreatDetailScreen";
 import { ThreatsScreen } from "./src/screens/ThreatsScreen";
 import type { AuthSession, Threat } from "./src/types/api";
@@ -15,7 +16,7 @@ export default function App() {
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
   const [iocSearchState, setIocSearchState] = useState<IocSearchScreenState | null>(null);
   const [activeScreen, setActiveScreen] = useState<
-    "threats" | "favorites" | "notifications" | "iocSearch"
+    "threats" | "favorites" | "notifications" | "iocSearch" | "createThreat"
   >("threats");
 
   return (
@@ -42,8 +43,18 @@ export default function App() {
           onStateChange={setIocSearchState}
           session={session}
         />
+      ) : session && activeScreen === "createThreat" ? (
+        <CreateThreatScreen
+          onBack={() => setActiveScreen("threats")}
+          onCreated={(threat) => {
+            setActiveScreen("threats");
+            setSelectedThreat(threat);
+          }}
+          session={session}
+        />
       ) : session ? (
         <ThreatsScreen
+          onOpenCreateThreat={() => setActiveScreen("createThreat")}
           onOpenFavorites={() => setActiveScreen("favorites")}
           onOpenIocSearch={() => setActiveScreen("iocSearch")}
           onOpenNotifications={() => setActiveScreen("notifications")}

@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../config/api";
-import type { Threat, ThreatDetail } from "../types/api";
+import type { Threat, ThreatCreatePayload, ThreatDetail } from "../types/api";
 
 type ThreatsResponse = {
   data: Threat[];
@@ -47,4 +47,52 @@ export async function getThreatDetail(
   }
 
   return response.json();
+}
+
+type CreateThreatResponse = {
+  data: ThreatDetail;
+};
+
+export async function createThreat(
+  accessToken: string,
+  payload: ThreatCreatePayload,
+): Promise<CreateThreatResponse> {
+  const response = await fetch(`${API_BASE_URL}/threats`, {
+    body: JSON.stringify(payload),
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    method: "POST",
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    const message = formatApiError(errorBody?.detail, "Threat could not be created.");
+    throw new Error(typeof message === "string" ? message : "Threat could not be created.");
+  }
+
+  return response.json();
+}
+
+function formatApiError(detail: unknown, fallback: string): string {
+  if (typeof detail === "string") {
+    return detail;
+  }
+
+  if (Array.isArray(detail)) {
+    const messages = detail
+      .map((item) => {
+        if (typeof item?.msg === "string") {
+          return item.msg;
+        }
+        return null;
+      })
+      .filter(Boolean)
+      .join(" ");
+    return messages || fallback;
+  }
+
+  return fallback;
 }
