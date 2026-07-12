@@ -18,6 +18,7 @@ type ThreatsScreenProps = {
   session: AuthSession;
   onLogout: () => void;
   onOpenFavorites: () => void;
+  onOpenIocSearch: () => void;
   onOpenNotifications: () => void;
   onSelectThreat: (threat: Threat) => void;
 };
@@ -34,6 +35,7 @@ export function ThreatsScreen({
   session,
   onLogout,
   onOpenFavorites,
+  onOpenIocSearch,
   onOpenNotifications,
   onSelectThreat,
 }: ThreatsScreenProps) {
@@ -103,6 +105,20 @@ export function ThreatsScreen({
             <Text style={styles.statLabel}>Critical</Text>
           </View>
         </View>
+
+        <Pressable
+          onPress={onOpenIocSearch}
+          style={({ pressed }) => [styles.lookupButton, pressed ? styles.lookupButtonPressed : null]}
+        >
+          <View style={styles.lookupIcon}>
+            <Ionicons name="search-outline" size={20} color="#06111f" />
+          </View>
+          <View style={styles.lookupTextBlock}>
+            <Text style={styles.lookupTitle}>Search IOC</Text>
+            <Text style={styles.lookupSubtitle}>Check a domain, IP, URL, hash or email</Text>
+          </View>
+          <Ionicons name="chevron-forward" size={18} color="#9fb0c7" />
+        </Pressable>
 
         {errorMessage ? (
           <View style={styles.errorBox}>
@@ -233,6 +249,42 @@ const styles = StyleSheet.create({
   statLabel: {
     color: "#9fb0c7",
     fontSize: 13,
+    marginTop: 2,
+  },
+  lookupButton: {
+    alignItems: "center",
+    backgroundColor: "#0d1b2d",
+    borderColor: "#263a55",
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 12,
+    marginBottom: 14,
+    padding: 12,
+  },
+  lookupButtonPressed: {
+    opacity: 0.82,
+  },
+  lookupIcon: {
+    alignItems: "center",
+    backgroundColor: "#58d68d",
+    borderRadius: 8,
+    height: 38,
+    justifyContent: "center",
+    width: 38,
+  },
+  lookupTextBlock: {
+    flex: 1,
+  },
+  lookupTitle: {
+    color: "#f7fbff",
+    fontSize: 15,
+    fontWeight: "900",
+  },
+  lookupSubtitle: {
+    color: "#9fb0c7",
+    fontSize: 12,
+    lineHeight: 17,
     marginTop: 2,
   },
   errorBox: {

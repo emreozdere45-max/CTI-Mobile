@@ -62,3 +62,18 @@ export type Notification = {
   read_at: string | null;
   created_at: string;
 };
+
+export type IocSearchResult = {
+  id: string;
+  type: string;
+  value: string;
+  risk_score: number;
+  confidence_score: number;
+  related_threat_count: number;
+};
+
+export type IocSearchData = {
+  query: string;
+  detected_type: string;
+  results: IocSearchResult[];
+};
