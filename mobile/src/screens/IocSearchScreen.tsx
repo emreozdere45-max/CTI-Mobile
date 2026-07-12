@@ -226,39 +226,39 @@ function IocResultCard({
   const riskColor = riskColors[riskLevel];
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      disabled={isUpdatingFavorite}
+      onPress={onToggleFavorite}
+      style={({ pressed }) => [
+        styles.card,
+        isFavorite ? styles.cardFavorite : null,
+        pressed && !isUpdatingFavorite ? styles.cardPressed : null,
+      ]}
+    >
       <View style={styles.cardHeader}>
         <View style={[styles.riskDot, { backgroundColor: riskColor }]} />
         <Text style={[styles.riskText, { color: riskColor }]}>{riskLevel} risk</Text>
         <Text style={styles.typeBadge}>{result.type}</Text>
+        <View style={[styles.favoriteIconButton, isFavorite ? styles.favoriteIconButtonActive : null]}>
+          {isUpdatingFavorite ? (
+            <ActivityIndicator color={isFavorite ? "#06111f" : "#58d68d"} size="small" />
+          ) : (
+            <Ionicons
+              name={isFavorite ? "star" : "star-outline"}
+              size={18}
+              color={isFavorite ? "#06111f" : "#58d68d"}
+            />
+          )}
+        </View>
       </View>
 
       <Text selectable style={styles.iocValue}>
         {result.value}
       </Text>
 
-      <Pressable
-        disabled={isUpdatingFavorite}
-        onPress={onToggleFavorite}
-        style={({ pressed }) => [
-          styles.favoriteButton,
-          isFavorite ? styles.favoriteButtonActive : null,
-          pressed && !isUpdatingFavorite ? styles.favoriteButtonPressed : null,
-        ]}
-      >
-        {isUpdatingFavorite ? (
-          <ActivityIndicator color={isFavorite ? "#06111f" : "#58d68d"} size="small" />
-        ) : (
-          <Ionicons
-            name={isFavorite ? "star" : "star-outline"}
-            size={18}
-            color={isFavorite ? "#06111f" : "#58d68d"}
-          />
-        )}
-        <Text style={[styles.favoriteButtonText, isFavorite ? styles.favoriteButtonTextActive : null]}>
-          {isFavorite ? "Saved IOC" : "Save IOC"}
-        </Text>
-      </Pressable>
+      <Text style={[styles.favoriteHint, isFavorite ? styles.favoriteHintActive : null]}>
+        {isFavorite ? "Saved IOC" : "Tap card to save IOC"}
+      </Text>
 
       <View style={styles.scoreGrid}>
         <View style={styles.scoreBox}>
@@ -274,7 +274,7 @@ function IocResultCard({
           <Text style={styles.scoreLabel}>Threats</Text>
         </View>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -460,6 +460,12 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 14,
   },
+  cardFavorite: {
+    borderColor: "#58d68d",
+  },
+  cardPressed: {
+    opacity: 0.82,
+  },
   cardHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -487,37 +493,32 @@ const styles = StyleSheet.create({
     paddingVertical: 4,
     textTransform: "uppercase",
   },
+  favoriteIconButton: {
+    alignItems: "center",
+    borderColor: "#58d68d",
+    borderRadius: 8,
+    borderWidth: 1,
+    height: 34,
+    justifyContent: "center",
+    width: 34,
+  },
+  favoriteIconButtonActive: {
+    backgroundColor: "#58d68d",
+  },
   iocValue: {
     color: "#f7fbff",
     fontSize: 17,
     fontWeight: "800",
     lineHeight: 23,
   },
-  favoriteButton: {
-    alignItems: "center",
-    alignSelf: "flex-start",
-    borderColor: "#58d68d",
-    borderRadius: 8,
-    borderWidth: 1,
-    flexDirection: "row",
-    gap: 7,
-    marginTop: 12,
-    paddingHorizontal: 10,
-    paddingVertical: 8,
-  },
-  favoriteButtonActive: {
-    backgroundColor: "#58d68d",
-  },
-  favoriteButtonPressed: {
-    opacity: 0.82,
-  },
-  favoriteButtonText: {
+  favoriteHint: {
     color: "#58d68d",
     fontSize: 12,
     fontWeight: "900",
+    marginTop: 12,
   },
-  favoriteButtonTextActive: {
-    color: "#06111f",
+  favoriteHintActive: {
+    color: "#d7ffe7",
   },
   scoreGrid: {
     flexDirection: "row",
