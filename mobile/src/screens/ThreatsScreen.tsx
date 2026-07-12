@@ -17,6 +17,7 @@ import type { AuthSession, Threat } from "../types/api";
 type ThreatsScreenProps = {
   session: AuthSession;
   onLogout: () => void;
+  onSelectThreat: (threat: Threat) => void;
 };
 
 const severityColors: Record<string, string> = {
@@ -27,7 +28,7 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
-export function ThreatsScreen({ session, onLogout }: ThreatsScreenProps) {
+export function ThreatsScreen({ session, onLogout, onSelectThreat }: ThreatsScreenProps) {
   const [threats, setThreats] = useState<Threat[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -110,7 +111,9 @@ export function ThreatsScreen({ session, onLogout }: ThreatsScreenProps) {
                 tintColor="#58d68d"
               />
             }
-            renderItem={({ item }) => <ThreatCard threat={item} />}
+            renderItem={({ item }) => (
+              <ThreatCard onPress={() => onSelectThreat(item)} threat={item} />
+            )}
           />
         )}
       </View>
@@ -118,11 +121,14 @@ export function ThreatsScreen({ session, onLogout }: ThreatsScreenProps) {
   );
 }
 
-function ThreatCard({ threat }: { threat: Threat }) {
+function ThreatCard({ onPress, threat }: { onPress: () => void; threat: Threat }) {
   const severityColor = severityColors[threat.severity] ?? "#9fb0c7";
 
   return (
-    <View style={styles.card}>
+    <Pressable
+      onPress={onPress}
+      style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
+    >
       <View style={styles.cardHeader}>
         <View style={[styles.severityDot, { backgroundColor: severityColor }]} />
         <Text style={[styles.severityText, { color: severityColor }]}>{threat.severity}</Text>
@@ -134,8 +140,9 @@ function ThreatCard({ threat }: { threat: Threat }) {
       <View style={styles.cardFooter}>
         <Text style={styles.metaText}>{threat.confidence_score}% confidence</Text>
         <Text style={styles.metaText}>{threat.tags.slice(0, 2).join(" / ")}</Text>
+        <Ionicons name="chevron-forward" size={16} color="#9fb0c7" />
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -239,6 +246,9 @@ const styles = StyleSheet.create({
     borderWidth: 1,
     padding: 14,
   },
+  cardPressed: {
+    opacity: 0.82,
+  },
   cardHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -268,6 +278,7 @@ const styles = StyleSheet.create({
     marginTop: 8,
   },
   cardFooter: {
+    alignItems: "center",
     flexDirection: "row",
     flexWrap: "wrap",
     gap: 10,

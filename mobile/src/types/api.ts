@@ -26,3 +26,16 @@ export type Threat = {
   published_at: string;
   is_favorite: boolean;
 };
+
+export type ThreatIOC = {
+  id: string;
+  type: string;
+  value: string;
+  risk_score: number;
+};
+
+export type ThreatDetail = Threat & {
+  description: string;
+  iocs: ThreatIOC[];
+  recommended_actions: string[];
+};
