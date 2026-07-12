@@ -43,7 +43,7 @@ export function FavoritesScreen({ session, onBack, onSelectThreat }: FavoritesSc
     setErrorMessage(null);
 
     try {
-      const result = await listFavorites(session.accessToken, "threat");
+      const result = await listFavorites(session.accessToken);
       setFavorites(result.data);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Favorites could not be loaded.");
@@ -96,7 +96,7 @@ export function FavoritesScreen({ session, onBack, onSelectThreat }: FavoritesSc
               />
             }
             renderItem={({ item }) => (
-              <FavoriteCard favorite={item} onPress={() => onSelectThreat(toThreat(item))} />
+              <FavoriteCard favorite={item} onSelectThreat={onSelectThreat} />
             )}
           />
         )}
@@ -120,24 +120,44 @@ function toThreat(favorite: Favorite): Threat {
   };
 }
 
-function FavoriteCard({ favorite, onPress }: { favorite: Favorite; onPress: () => void }) {
-  const threat = toThreat(favorite);
-  const severityColor = severityColors[threat.severity] ?? "#9fb0c7";
+function FavoriteCard({
+  favorite,
+  onSelectThreat,
+}: {
+  favorite: Favorite;
+  onSelectThreat: (threat: Threat) => void;
+}) {
+  const isThreat = favorite.target_type === "threat";
+  const threat = isThreat ? toThreat(favorite) : null;
+  const severityColor = threat ? severityColors[threat.severity] ?? "#9fb0c7" : "#58d68d";
+  const iocType = typeof favorite.target.type === "string" ? favorite.target.type : "ioc";
+  const iocValue = typeof favorite.target.value === "string" ? favorite.target.value : favorite.target_id;
+  const iocRiskScore =
+    typeof favorite.target.risk_score === "number" ? favorite.target.risk_score : 0;
 
   return (
     <Pressable
-      onPress={onPress}
+      disabled={!isThreat}
+      onPress={() => {
+        if (threat) {
+          onSelectThreat(threat);
+        }
+      }}
       style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
     >
       <View style={styles.cardHeader}>
         <Ionicons name="star" size={17} color="#58d68d" />
-        <Text style={[styles.severityText, { color: severityColor }]}>{threat.severity}</Text>
+        <Text style={[styles.severityText, { color: severityColor }]}>
+          {threat ? threat.severity : iocType}
+        </Text>
       </View>
-      <Text style={styles.cardTitle}>{threat.title}</Text>
-      <Text style={styles.cardSummary}>{threat.summary}</Text>
+      <Text style={styles.cardTitle}>{threat ? threat.title : iocValue}</Text>
+      <Text style={styles.cardSummary}>
+        {threat ? threat.summary : `Risk score: ${iocRiskScore}`}
+      </Text>
       <View style={styles.cardFooter}>
-        <Text style={styles.metaText}>Saved threat</Text>
-        <Ionicons name="chevron-forward" size={16} color="#9fb0c7" />
+        <Text style={styles.metaText}>{threat ? "Saved threat" : "Saved IOC"}</Text>
+        {threat ? <Ionicons name="chevron-forward" size={16} color="#9fb0c7" /> : null}
       </View>
     </Pressable>
   );
@@ -148,7 +168,7 @@ function EmptyState() {
     <View style={styles.emptyBox}>
       <Ionicons name="star-outline" size={30} color="#9fb0c7" />
       <Text style={styles.emptyTitle}>No favorites yet</Text>
-      <Text style={styles.emptyText}>Open a threat detail and tap the star button.</Text>
+      <Text style={styles.emptyText}>Open a threat or IOC result and tap the star button.</Text>
     </View>
   );
 }

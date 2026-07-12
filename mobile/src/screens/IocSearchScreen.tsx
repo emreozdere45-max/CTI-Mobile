@@ -11,6 +11,7 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { createFavorite, deleteFavorite, listFavorites } from "../api/favorites";
 import { searchIocs } from "../api/iocs";
 import type { AuthSession, IocSearchData, IocSearchResult } from "../types/api";
 
@@ -31,29 +32,74 @@ export function IocSearchScreen({ session, onBack }: IocSearchScreenProps) {
   const [query, setQuery] = useState("malicious-example.com");
   const [selectedType, setSelectedType] = useState("auto");
   const [result, setResult] = useState<IocSearchData | null>(null);
+  const [favoriteIdsByIocId, setFavoriteIdsByIocId] = useState<Record<string, string>>({});
   const [isLoading, setIsLoading] = useState(false);
+  const [updatingFavoriteId, setUpdatingFavoriteId] = useState<string | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [successMessage, setSuccessMessage] = useState<string | null>(null);
 
   async function handleSearch() {
     const trimmedQuery = query.trim();
     if (trimmedQuery.length < 2) {
-      setErrorMessage("En az 2 karakterlik bir IOC değeri yazmalısın.");
+      setErrorMessage("En az 2 karakterlik bir IOC degeri yazmalisin.");
       return;
     }
 
     setIsLoading(true);
     setErrorMessage(null);
+    setSuccessMessage(null);
+
     try {
       const response = await searchIocs(
         session.accessToken,
         trimmedQuery,
         selectedType === "auto" ? undefined : selectedType,
       );
+      const favorites = await listFavorites(session.accessToken, "ioc");
+      const nextFavoriteMap = favorites.data.reduce<Record<string, string>>(
+        (accumulator, favorite) => {
+          accumulator[favorite.target_id] = favorite.id;
+          return accumulator;
+        },
+        {},
+      );
+
       setResult(response.data);
+      setFavoriteIdsByIocId(nextFavoriteMap);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "IOC search could not be completed.");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleToggleFavorite(ioc: IocSearchResult) {
+    setUpdatingFavoriteId(ioc.id);
+    setErrorMessage(null);
+    setSuccessMessage(null);
+
+    try {
+      const favoriteId = favoriteIdsByIocId[ioc.id];
+      if (favoriteId) {
+        await deleteFavorite(session.accessToken, favoriteId);
+        setFavoriteIdsByIocId((current) => {
+          const next = { ...current };
+          delete next[ioc.id];
+          return next;
+        });
+        setSuccessMessage("IOC favorilerden cikarildi.");
+      } else {
+        const response = await createFavorite(session.accessToken, "ioc", ioc.id);
+        setFavoriteIdsByIocId((current) => ({
+          ...current,
+          [ioc.id]: response.data.id,
+        }));
+        setSuccessMessage("IOC favorilere eklendi.");
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Favorite action failed.");
+    } finally {
+      setUpdatingFavoriteId(null);
     }
   }
 
@@ -133,6 +179,12 @@ export function IocSearchScreen({ session, onBack }: IocSearchScreenProps) {
           </View>
         ) : null}
 
+        {successMessage ? (
+          <View style={styles.successBox}>
+            <Text style={styles.successText}>{successMessage}</Text>
+          </View>
+        ) : null}
+
         {result ? (
           <View style={styles.resultMeta}>
             <Text style={styles.resultMetaText}>Query: {result.query}</Text>
@@ -145,14 +197,31 @@ export function IocSearchScreen({ session, onBack }: IocSearchScreenProps) {
           contentContainerStyle={styles.listContent}
           data={result?.results ?? []}
           keyExtractor={(item) => item.id}
-          renderItem={({ item }) => <IocResultCard result={item} />}
+          renderItem={({ item }) => (
+            <IocResultCard
+              isFavorite={Boolean(favoriteIdsByIocId[item.id])}
+              isUpdatingFavorite={updatingFavoriteId === item.id}
+              onToggleFavorite={() => void handleToggleFavorite(item)}
+              result={item}
+            />
+          )}
         />
       </View>
     </SafeAreaView>
   );
 }
 
-function IocResultCard({ result }: { result: IocSearchResult }) {
+function IocResultCard({
+  isFavorite,
+  isUpdatingFavorite,
+  onToggleFavorite,
+  result,
+}: {
+  isFavorite: boolean;
+  isUpdatingFavorite: boolean;
+  onToggleFavorite: () => void;
+  result: IocSearchResult;
+}) {
   const riskLevel = result.risk_score >= 80 ? "high" : result.risk_score >= 50 ? "medium" : "low";
   const riskColor = riskColors[riskLevel];
 
@@ -167,6 +236,29 @@ function IocResultCard({ result }: { result: IocSearchResult }) {
       <Text selectable style={styles.iocValue}>
         {result.value}
       </Text>
+
+      <Pressable
+        disabled={isUpdatingFavorite}
+        onPress={onToggleFavorite}
+        style={({ pressed }) => [
+          styles.favoriteButton,
+          isFavorite ? styles.favoriteButtonActive : null,
+          pressed && !isUpdatingFavorite ? styles.favoriteButtonPressed : null,
+        ]}
+      >
+        {isUpdatingFavorite ? (
+          <ActivityIndicator color={isFavorite ? "#06111f" : "#58d68d"} size="small" />
+        ) : (
+          <Ionicons
+            name={isFavorite ? "star" : "star-outline"}
+            size={18}
+            color={isFavorite ? "#06111f" : "#58d68d"}
+          />
+        )}
+        <Text style={[styles.favoriteButtonText, isFavorite ? styles.favoriteButtonTextActive : null]}>
+          {isFavorite ? "Saved IOC" : "Save IOC"}
+        </Text>
+      </Pressable>
 
       <View style={styles.scoreGrid}>
         <View style={styles.scoreBox}>
@@ -330,6 +422,17 @@ const styles = StyleSheet.create({
   errorText: {
     color: "#ffd9df",
   },
+  successBox: {
+    backgroundColor: "#123222",
+    borderColor: "#2f8756",
+    borderRadius: 8,
+    borderWidth: 1,
+    marginBottom: 12,
+    padding: 12,
+  },
+  successText: {
+    color: "#d7ffe7",
+  },
   resultMeta: {
     backgroundColor: "#0d1b2d",
     borderColor: "#263a55",
@@ -389,6 +492,32 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: "800",
     lineHeight: 23,
+  },
+  favoriteButton: {
+    alignItems: "center",
+    alignSelf: "flex-start",
+    borderColor: "#58d68d",
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 7,
+    marginTop: 12,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  favoriteButtonActive: {
+    backgroundColor: "#58d68d",
+  },
+  favoriteButtonPressed: {
+    opacity: 0.82,
+  },
+  favoriteButtonText: {
+    color: "#58d68d",
+    fontSize: 12,
+    fontWeight: "900",
+  },
+  favoriteButtonTextActive: {
+    color: "#06111f",
   },
   scoreGrid: {
     flexDirection: "row",
