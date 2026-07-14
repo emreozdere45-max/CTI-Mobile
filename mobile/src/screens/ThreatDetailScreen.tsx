@@ -12,9 +12,10 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
+import { createThreatSummary } from "../api/ai";
 import { createFavorite, deleteFavorite, listFavorites } from "../api/favorites";
 import { deleteThreat, getThreatDetail } from "../api/threats";
-import type { AuthSession, Threat, ThreatDetail, ThreatIOC } from "../types/api";
+import type { AuthSession, Threat, ThreatAiSummary, ThreatDetail, ThreatIOC } from "../types/api";
 
 type ThreatDetailScreenProps = {
   session: AuthSession;
@@ -45,7 +46,9 @@ export function ThreatDetailScreen({
   const [favoriteId, setFavoriteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
+  const [isSummaryLoading, setIsSummaryLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
+  const [aiSummary, setAiSummary] = useState<ThreatAiSummary | null>(null);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
 
@@ -79,6 +82,20 @@ export function ThreatDetailScreen({
       });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Threat could not be shared.");
+    }
+  }
+
+  async function handleGenerateSummary() {
+    setIsSummaryLoading(true);
+    setErrorMessage(null);
+
+    try {
+      const result = await createThreatSummary(session.accessToken, threat.id);
+      setAiSummary(result.data);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "AI summary could not be generated.");
+    } finally {
+      setIsSummaryLoading(false);
     }
   }
 
@@ -227,6 +244,39 @@ export function ThreatDetailScreen({
               <>
                 <Section title="Description">
                   <Text style={styles.bodyText}>{detail.description}</Text>
+                </Section>
+
+                <Section title="AI Summary">
+                  {aiSummary ? (
+                    <View style={styles.aiSummaryBox}>
+                      <Text style={styles.aiSummaryText}>{aiSummary.content}</Text>
+                      <Text style={styles.aiSummaryMeta}>
+                        {aiSummary.model} / {aiSummary.summary_type}
+                      </Text>
+                    </View>
+                  ) : (
+                    <Text style={styles.mutedText}>
+                      Generate a short analyst summary for this threat.
+                    </Text>
+                  )}
+
+                  <Pressable
+                    disabled={isSummaryLoading}
+                    onPress={() => void handleGenerateSummary()}
+                    style={({ pressed }) => [
+                      styles.aiButton,
+                      pressed || isSummaryLoading ? styles.aiButtonPressed : null,
+                    ]}
+                  >
+                    {isSummaryLoading ? (
+                      <ActivityIndicator color="#06111f" size="small" />
+                    ) : (
+                      <Ionicons name="sparkles-outline" size={18} color="#06111f" />
+                    )}
+                    <Text style={styles.aiButtonText}>
+                      {aiSummary ? "Regenerate summary" : "Generate summary"}
+                    </Text>
+                  </Pressable>
                 </Section>
 
                 <Section title="Tags">
@@ -473,6 +523,42 @@ const styles = StyleSheet.create({
   },
   successText: {
     color: "#d7ffe7",
+  },
+  aiSummaryBox: {
+    backgroundColor: "#06111f",
+    borderColor: "#263a55",
+    borderRadius: 8,
+    borderWidth: 1,
+    padding: 12,
+  },
+  aiSummaryText: {
+    color: "#d7e2f0",
+    fontSize: 14,
+    lineHeight: 21,
+  },
+  aiSummaryMeta: {
+    color: "#9fb0c7",
+    fontSize: 12,
+    fontWeight: "800",
+    marginTop: 10,
+  },
+  aiButton: {
+    alignItems: "center",
+    backgroundColor: "#58d68d",
+    borderRadius: 8,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    marginTop: 12,
+    minHeight: 42,
+  },
+  aiButtonPressed: {
+    opacity: 0.82,
+  },
+  aiButtonText: {
+    color: "#06111f",
+    fontSize: 14,
+    fontWeight: "900",
   },
   summaryPanel: {
     backgroundColor: "#0d1b2d",

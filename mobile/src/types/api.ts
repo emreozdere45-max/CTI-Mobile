@@ -57,6 +57,16 @@ export type ThreatDetail = Threat & {
   recommended_actions: string[];
 };
 
+export type ThreatAiSummary = {
+  id: string;
+  threat_id: string;
+  summary_type: string;
+  content: string;
+  model: string;
+  prompt_version: string;
+  created_at: string;
+};
+
 export type FavoriteTargetType = "threat" | "ioc";
 
 export type Favorite = {
