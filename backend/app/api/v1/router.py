@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 
-from app.api.v1.endpoints import ai, auth, favorites, health, iocs, notifications, threats, users
+from app.api.v1.endpoints import ai, auth, favorites, feeds, health, iocs, notifications, threats, users
 
 api_router = APIRouter()
 api_router.include_router(health.router, tags=["health"])
@@ -11,3 +11,4 @@ api_router.include_router(iocs.router, prefix="/iocs", tags=["iocs"])
 api_router.include_router(ai.router, prefix="/ai", tags=["ai"])
 api_router.include_router(favorites.router, prefix="/favorites", tags=["favorites"])
 api_router.include_router(notifications.router, prefix="/notifications", tags=["notifications"])
+api_router.include_router(feeds.router, prefix="/feeds", tags=["feeds"])
