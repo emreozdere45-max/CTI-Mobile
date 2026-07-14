@@ -40,6 +40,8 @@ export type ThreatCreatePayload = {
   published_at: string | null;
 };
 
+export type ThreatUpdatePayload = Partial<ThreatCreatePayload>;
+
 export type ThreatIOC = {
   id: string;
   type: string;
@@ -49,6 +51,8 @@ export type ThreatIOC = {
 
 export type ThreatDetail = Threat & {
   description: string;
+  industry: string | null;
+  region: string | null;
   iocs: ThreatIOC[];
   recommended_actions: string[];
 };

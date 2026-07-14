@@ -13,31 +13,29 @@ import {
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
-import { createThreat } from "../api/threats";
+import { updateThreat } from "../api/threats";
 import type { AuthSession, ThreatDetail } from "../types/api";
 import { assessThreatRisk } from "../utils/threatAssessment";
 
-type CreateThreatScreenProps = {
+type EditThreatScreenProps = {
   session: AuthSession;
+  threat: ThreatDetail;
   onBack: () => void;
-  onCreated: (threat: ThreatDetail) => void;
+  onUpdated: (threat: ThreatDetail) => void;
 };
 
-export function CreateThreatScreen({ session, onBack, onCreated }: CreateThreatScreenProps) {
-  const [title, setTitle] = useState("");
-  const [summary, setSummary] = useState("");
-  const [description, setDescription] = useState("");
-  const [industry, setIndustry] = useState("");
-  const [region, setRegion] = useState("");
-  const [tags, setTags] = useState("phishing, test");
+export function EditThreatScreen({ session, threat, onBack, onUpdated }: EditThreatScreenProps) {
+  const [title, setTitle] = useState(threat.title);
+  const [summary, setSummary] = useState(threat.summary);
+  const [description, setDescription] = useState(threat.description ?? "");
+  const [industry, setIndustry] = useState(threat.industry ?? "");
+  const [region, setRegion] = useState(threat.region ?? "");
+  const [tags, setTags] = useState(threat.tags.join(", "));
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
-  const canSubmit =
-    title.trim().length > 0 && summary.trim().length > 0 && description.trim().length > 0;
-
   async function handleSubmit() {
-    if (!canSubmit || title.trim().length < 3) {
+    if (title.trim().length < 3) {
       setErrorMessage("Title must be at least 3 characters.");
       return;
     }
@@ -48,7 +46,7 @@ export function CreateThreatScreen({ session, onBack, onCreated }: CreateThreatS
     }
 
     if (description.trim().length < 10) {
-      setErrorMessage("Title, summary and description are required.");
+      setErrorMessage("Description must be at least 10 characters.");
       return;
     }
 
@@ -56,21 +54,13 @@ export function CreateThreatScreen({ session, onBack, onCreated }: CreateThreatS
     setErrorMessage(null);
 
     try {
-      const assessment = assessThreatRisk({
-        description,
-        summary,
-        tags,
-        title,
-      });
-
-      const result = await createThreat(session.accessToken, {
+      const assessment = assessThreatRisk({ description, summary, tags, title });
+      const result = await updateThreat(session.accessToken, threat.id, {
         confidence_score: assessment.confidenceScore,
         description: description.trim(),
         industry: industry.trim() || null,
-        published_at: null,
         region: region.trim() || null,
         severity: assessment.severity,
-        source_id: null,
         summary: summary.trim(),
         tags: tags
           .split(",")
@@ -79,9 +69,9 @@ export function CreateThreatScreen({ session, onBack, onCreated }: CreateThreatS
         title: title.trim(),
       });
 
-      onCreated(result.data);
+      onUpdated(result.data);
     } catch (error) {
-      setErrorMessage(error instanceof Error ? error.message : "Threat could not be created.");
+      setErrorMessage(error instanceof Error ? error.message : "Threat could not be updated.");
     } finally {
       setIsSubmitting(false);
     }
@@ -99,7 +89,7 @@ export function CreateThreatScreen({ session, onBack, onCreated }: CreateThreatS
           </Pressable>
           <View style={styles.headerText}>
             <Text style={styles.eyebrow}>Threat management</Text>
-            <Text style={styles.title}>Create threat</Text>
+            <Text style={styles.title}>Edit threat</Text>
           </View>
         </View>
 
@@ -130,7 +120,7 @@ export function CreateThreatScreen({ session, onBack, onCreated }: CreateThreatS
           <View style={styles.infoBox}>
             <Ionicons name="sparkles-outline" size={20} color="#58d68d" />
             <Text style={styles.infoText}>
-              The app will estimate severity and confidence from the threat content.
+              Severity and confidence will be recalculated when you save.
             </Text>
           </View>
 
@@ -155,8 +145,8 @@ export function CreateThreatScreen({ session, onBack, onCreated }: CreateThreatS
               <ActivityIndicator color="#06111f" />
             ) : (
               <>
-                <Ionicons name="checkmark" size={20} color="#06111f" />
-                <Text style={styles.submitButtonText}>Create threat</Text>
+                <Ionicons name="save-outline" size={20} color="#06111f" />
+                <Text style={styles.submitButtonText}>Save changes</Text>
               </>
             )}
           </Pressable>
@@ -179,7 +169,11 @@ function Field({
       <Text style={styles.label}>{label}</Text>
       <TextInput
         placeholderTextColor="#64748b"
-        style={[styles.input, inputProps.multiline ? styles.multilineInput : null, tall ? styles.tallInput : null]}
+        style={[
+          styles.input,
+          inputProps.multiline ? styles.multilineInput : null,
+          tall ? styles.tallInput : null,
+        ]}
         {...inputProps}
       />
     </View>
@@ -279,8 +273,8 @@ const styles = StyleSheet.create({
   },
   infoText: {
     color: "#d7e2f0",
-    fontSize: 13,
     flex: 1,
+    fontSize: 13,
     lineHeight: 18,
   },
   submitButton: {
@@ -290,8 +284,8 @@ const styles = StyleSheet.create({
     flexDirection: "row",
     gap: 8,
     justifyContent: "center",
-    minHeight: 50,
     marginTop: 6,
+    minHeight: 50,
   },
   submitButtonPressed: {
     opacity: 0.82,

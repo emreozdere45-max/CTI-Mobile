@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "../config/api";
-import type { Threat, ThreatCreatePayload, ThreatDetail } from "../types/api";
+import type { Threat, ThreatCreatePayload, ThreatDetail, ThreatUpdatePayload } from "../types/api";
 
 type ThreatsResponse = {
   data: Threat[];
@@ -74,6 +74,46 @@ export async function createThreat(
   }
 
   return response.json();
+}
+
+export async function updateThreat(
+  accessToken: string,
+  threatId: string,
+  payload: ThreatUpdatePayload,
+): Promise<CreateThreatResponse> {
+  const response = await fetch(`${API_BASE_URL}/threats/${threatId}`, {
+    body: JSON.stringify(payload),
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+      "Content-Type": "application/json",
+    },
+    method: "PUT",
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    const message = formatApiError(errorBody?.detail, "Threat could not be updated.");
+    throw new Error(message);
+  }
+
+  return response.json();
+}
+
+export async function deleteThreat(accessToken: string, threatId: string): Promise<void> {
+  const response = await fetch(`${API_BASE_URL}/threats/${threatId}`, {
+    headers: {
+      Accept: "application/json",
+      Authorization: `Bearer ${accessToken}`,
+    },
+    method: "DELETE",
+  });
+
+  if (!response.ok) {
+    const errorBody = await response.json().catch(() => null);
+    const message = formatApiError(errorBody?.detail, "Threat could not be deleted.");
+    throw new Error(message);
+  }
 }
 
 function formatApiError(detail: unknown, fallback: string): string {

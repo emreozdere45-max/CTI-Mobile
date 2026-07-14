@@ -2,8 +2,10 @@ import { Ionicons } from "@expo/vector-icons";
 import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
+  Alert,
   Pressable,
   ScrollView,
+  Share,
   StyleSheet,
   Text,
   View,
@@ -11,13 +13,15 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createFavorite, deleteFavorite, listFavorites } from "../api/favorites";
-import { getThreatDetail } from "../api/threats";
+import { deleteThreat, getThreatDetail } from "../api/threats";
 import type { AuthSession, Threat, ThreatDetail } from "../types/api";
 
 type ThreatDetailScreenProps = {
   session: AuthSession;
   threat: Threat;
   onBack: () => void;
+  onDeleted: () => void;
+  onEdit: (threat: ThreatDetail) => void;
 };
 
 const severityColors: Record<string, string> = {
@@ -28,9 +32,10 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
-export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScreenProps) {
+export function ThreatDetailScreen({ session, threat, onBack, onDeleted, onEdit }: ThreatDetailScreenProps) {
   const [detail, setDetail] = useState<ThreatDetail | null>(null);
   const [favoriteId, setFavoriteId] = useState<string | null>(null);
+  const [isDeleting, setIsDeleting] = useState(false);
   const [isFavoriteLoading, setIsFavoriteLoading] = useState(false);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
@@ -52,6 +57,49 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
       setErrorMessage(error instanceof Error ? error.message : "Threat detail could not be loaded.");
     } finally {
       setIsLoading(false);
+    }
+  }
+
+  async function handleSharePress() {
+    const currentThreat = detail ?? threat;
+    const message = formatThreatExport(currentThreat);
+
+    try {
+      await Share.share({
+        message,
+        title: currentThreat.title,
+      });
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Threat could not be shared.");
+    }
+  }
+
+  function handleDeletePress() {
+    Alert.alert(
+      "Delete threat",
+      "This threat will be permanently deleted. Are you sure?",
+      [
+        { style: "cancel", text: "Cancel" },
+        {
+          style: "destructive",
+          text: "Delete",
+          onPress: () => void confirmDelete(),
+        },
+      ],
+    );
+  }
+
+  async function confirmDelete() {
+    setIsDeleting(true);
+    setErrorMessage(null);
+
+    try {
+      await deleteThreat(session.accessToken, threat.id);
+      onDeleted();
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Threat could not be deleted.");
+    } finally {
+      setIsDeleting(false);
     }
   }
 
@@ -129,6 +177,27 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
               </View>
             ) : null}
 
+            <View style={styles.actionBar}>
+              <ActionButton
+                disabled={!detail}
+                icon="create-outline"
+                label="Edit"
+                onPress={() => {
+                  if (detail) {
+                    onEdit(detail);
+                  }
+                }}
+              />
+              <ActionButton icon="share-outline" label="Export" onPress={handleSharePress} />
+              <ActionButton
+                destructive
+                disabled={isDeleting}
+                icon="trash-outline"
+                label={isDeleting ? "Deleting" : "Delete"}
+                onPress={handleDeletePress}
+              />
+            </View>
+
             <View style={styles.summaryPanel}>
               <View style={styles.severityRow}>
                 <View style={[styles.severityDot, { backgroundColor: severityColor }]} />
@@ -193,6 +262,73 @@ export function ThreatDetailScreen({ session, threat, onBack }: ThreatDetailScre
       </View>
     </SafeAreaView>
   );
+}
+
+function ActionButton({
+  destructive = false,
+  disabled = false,
+  icon,
+  label,
+  onPress,
+}: {
+  destructive?: boolean;
+  disabled?: boolean;
+  icon: React.ComponentProps<typeof Ionicons>["name"];
+  label: string;
+  onPress: () => void;
+}) {
+  return (
+    <Pressable
+      disabled={disabled}
+      onPress={onPress}
+      style={({ pressed }) => [
+        styles.actionButton,
+        destructive ? styles.destructiveActionButton : null,
+        pressed && !disabled ? styles.iconButtonPressed : null,
+        disabled ? styles.disabledActionButton : null,
+      ]}
+    >
+      <Ionicons name={icon} size={17} color={destructive ? "#ffd9df" : "#d7e2f0"} />
+      <Text style={[styles.actionButtonText, destructive ? styles.destructiveActionText : null]}>
+        {label}
+      </Text>
+    </Pressable>
+  );
+}
+
+function formatThreatExport(threat: Threat | ThreatDetail): string {
+  const detail = "description" in threat ? threat : null;
+  const tags = threat.tags.length ? threat.tags.join(", ") : "None";
+  const iocs =
+    detail && detail.iocs.length
+      ? detail.iocs.map((ioc) => `- ${ioc.type}: ${ioc.value} (risk ${ioc.risk_score})`).join("\n")
+      : "No related IOC.";
+  const actions =
+    detail && detail.recommended_actions.length
+      ? detail.recommended_actions.map((action) => `- ${action}`).join("\n")
+      : "No recommended action.";
+
+  return [
+    "CTI Threat Report",
+    "",
+    `Title: ${threat.title}`,
+    `Severity: ${threat.severity}`,
+    `Confidence: ${threat.confidence_score}%`,
+    `Source: ${threat.source?.name ?? "Unknown"}`,
+    `Tags: ${tags}`,
+    "",
+    "Summary:",
+    threat.summary,
+    "",
+    "Description:",
+    detail?.description ?? "No description.",
+    "",
+    "Related IOCs:",
+    iocs,
+    "",
+    "Recommended Actions:",
+    actions,
+  ].join("\n");
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -267,6 +403,38 @@ const styles = StyleSheet.create({
   content: {
     gap: 12,
     paddingBottom: 28,
+  },
+  actionBar: {
+    flexDirection: "row",
+    gap: 8,
+  },
+  actionButton: {
+    alignItems: "center",
+    backgroundColor: "#0d1b2d",
+    borderColor: "#263a55",
+    borderRadius: 8,
+    borderWidth: 1,
+    flex: 1,
+    flexDirection: "row",
+    gap: 6,
+    justifyContent: "center",
+    minHeight: 42,
+    paddingHorizontal: 8,
+  },
+  actionButtonText: {
+    color: "#d7e2f0",
+    fontSize: 13,
+    fontWeight: "800",
+  },
+  destructiveActionButton: {
+    backgroundColor: "#3b1620",
+    borderColor: "#8e2f45",
+  },
+  destructiveActionText: {
+    color: "#ffd9df",
+  },
+  disabledActionButton: {
+    opacity: 0.55,
   },
   errorBox: {
     backgroundColor: "#3b1620",
