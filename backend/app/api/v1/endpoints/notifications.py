@@ -7,12 +7,24 @@ from sqlalchemy.orm import Session
 
 from app.api.deps import get_current_user
 from app.db.session import get_db
-from app.models import Notification, User
+from app.models import Notification, ThreatIOC, User
 
 router = APIRouter()
 
 
-def serialize_notification(notification: Notification) -> dict:
+def resolve_target_threat_id(db: Session, notification: Notification) -> str | None:
+    if notification.target_type == "threat" and notification.target_id:
+        return str(notification.target_id)
+
+    if notification.target_type == "ioc" and notification.target_id:
+        link = db.scalar(select(ThreatIOC).where(ThreatIOC.ioc_id == notification.target_id).limit(1))
+        if link is not None:
+            return str(link.threat_id)
+
+    return None
+
+
+def serialize_notification(db: Session, notification: Notification) -> dict:
     return {
         "id": str(notification.id),
         "notification_type": notification.notification_type,
@@ -21,6 +33,7 @@ def serialize_notification(notification: Notification) -> dict:
         "severity": notification.severity,
         "target_type": notification.target_type,
         "target_id": str(notification.target_id) if notification.target_id else None,
+        "target_threat_id": resolve_target_threat_id(db, notification),
         "is_read": notification.is_read,
         "read_at": notification.read_at.isoformat() if notification.read_at else None,
         "created_at": notification.created_at.isoformat(),
@@ -50,7 +63,7 @@ def list_notifications(
     )
 
     return {
-        "data": [serialize_notification(notification) for notification in notifications],
+        "data": [serialize_notification(db, notification) for notification in notifications],
         "meta": {
             "total": len(notifications),
             "unread_count": unread_count or 0,
@@ -78,7 +91,7 @@ def mark_notification_read(
     db.commit()
     db.refresh(notification)
 
-    return {"data": serialize_notification(notification)}
+    return {"data": serialize_notification(db, notification)}
 
 
 @router.patch("/read-all")

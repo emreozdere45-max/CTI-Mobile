@@ -75,6 +75,7 @@ export type Notification = {
   severity: "critical" | "high" | "medium" | "low" | "info" | string;
   target_type: string | null;
   target_id: string | null;
+  target_threat_id?: string | null;
   is_read: boolean;
   read_at: string | null;
   created_at: string;

@@ -52,7 +52,13 @@ export default function App() {
           session={session}
         />
       ) : session && activeScreen === "notifications" ? (
-        <NotificationsScreen onBack={() => setActiveScreen("threats")} session={session} />
+        <NotificationsScreen
+          onBack={() => setActiveScreen("threats")}
+          onSelectThreat={(threat) => {
+            setSelectedThreat(threat);
+          }}
+          session={session}
+        />
       ) : session && activeScreen === "iocSearch" ? (
         <IocSearchScreen
           initialState={iocSearchState}

@@ -16,11 +16,13 @@ import {
   markAllNotificationsRead,
   markNotificationRead,
 } from "../api/notifications";
-import type { AuthSession, Notification } from "../types/api";
+import { getThreatDetail } from "../api/threats";
+import type { AuthSession, Notification, Threat } from "../types/api";
 
 type NotificationsScreenProps = {
   session: AuthSession;
   onBack: () => void;
+  onSelectThreat: (threat: Threat) => void;
 };
 
 const severityColors: Record<string, string> = {
@@ -31,7 +33,7 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
-export function NotificationsScreen({ session, onBack }: NotificationsScreenProps) {
+export function NotificationsScreen({ session, onBack, onSelectThreat }: NotificationsScreenProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -81,6 +83,34 @@ export function NotificationsScreen({ session, onBack }: NotificationsScreenProp
       setUnreadCount((current) => Math.max(current - 1, 0));
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Notification could not be updated.");
+    } finally {
+      setIsUpdating(false);
+    }
+  }
+
+  async function handleOpenNotification(notification: Notification) {
+    setIsUpdating(true);
+    setErrorMessage(null);
+
+    try {
+      if (!notification.is_read) {
+        const result = await markNotificationRead(session.accessToken, notification.id);
+        setNotifications((current) =>
+          current.map((item) => (item.id === notification.id ? result.data : item)),
+        );
+        setUnreadCount((current) => Math.max(current - 1, 0));
+      }
+
+      const targetThreatId =
+        notification.target_threat_id ??
+        (notification.target_type === "threat" ? notification.target_id : null);
+
+      if (targetThreatId) {
+        const threatResult = await getThreatDetail(session.accessToken, targetThreatId);
+        onSelectThreat(threatResult.data);
+      }
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Notification could not be opened.");
     } finally {
       setIsUpdating(false);
     }
@@ -167,6 +197,7 @@ export function NotificationsScreen({ session, onBack }: NotificationsScreenProp
               <NotificationCard
                 notification={item}
                 onMarkRead={() => void handleMarkOne(item)}
+                onOpen={() => void handleOpenNotification(item)}
               />
             )}
           />
@@ -179,14 +210,29 @@ export function NotificationsScreen({ session, onBack }: NotificationsScreenProp
 function NotificationCard({
   notification,
   onMarkRead,
+  onOpen,
 }: {
   notification: Notification;
   onMarkRead: () => void;
+  onOpen: () => void;
 }) {
   const severityColor = severityColors[notification.severity] ?? "#9fb0c7";
+  const canOpenTarget = Boolean(
+    notification.target_threat_id ??
+      (notification.target_type === "threat" ? notification.target_id : null),
+  );
 
   return (
-    <View style={[styles.card, notification.is_read ? styles.cardRead : null]}>
+    <Pressable
+      disabled={!canOpenTarget}
+      onPress={onOpen}
+      style={({ pressed }) => [
+        styles.card,
+        notification.is_read ? styles.cardRead : null,
+        pressed && canOpenTarget ? styles.cardPressed : null,
+        !canOpenTarget ? styles.cardDisabled : null,
+      ]}
+    >
       <View style={styles.cardHeader}>
         <View style={[styles.severityDot, { backgroundColor: severityColor }]} />
         <Text style={[styles.severityText, { color: severityColor }]}>
@@ -197,10 +243,21 @@ function NotificationCard({
       <Text style={styles.cardTitle}>{notification.title}</Text>
       <Text style={styles.cardMessage}>{notification.message}</Text>
       <View style={styles.cardFooter}>
-        <Text style={styles.metaText}>{notification.notification_type}</Text>
+        <View style={styles.targetHint}>
+          <Text style={styles.metaText}>{notification.notification_type}</Text>
+          {canOpenTarget ? (
+            <>
+              <Ionicons name="open-outline" size={13} color="#9fb0c7" />
+              <Text style={styles.metaText}>Open threat</Text>
+            </>
+          ) : null}
+        </View>
         <Pressable
           disabled={notification.is_read}
-          onPress={onMarkRead}
+          onPress={(event) => {
+            event.stopPropagation();
+            onMarkRead();
+          }}
           style={[styles.readButton, notification.is_read ? styles.readButtonDisabled : null]}
         >
           <Ionicons
@@ -215,7 +272,7 @@ function NotificationCard({
           </Text>
         </Pressable>
       </View>
-    </View>
+    </Pressable>
   );
 }
 
@@ -332,6 +389,12 @@ const styles = StyleSheet.create({
   cardRead: {
     opacity: 0.78,
   },
+  cardPressed: {
+    opacity: 0.84,
+  },
+  cardDisabled: {
+    opacity: 0.72,
+  },
   cardHeader: {
     alignItems: "center",
     flexDirection: "row",
@@ -376,6 +439,13 @@ const styles = StyleSheet.create({
   metaText: {
     color: "#9fb0c7",
     fontSize: 12,
+  },
+  targetHint: {
+    alignItems: "center",
+    flex: 1,
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 6,
   },
   readButton: {
     alignItems: "center",
