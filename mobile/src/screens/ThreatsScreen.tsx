@@ -7,6 +7,7 @@ import {
   RefreshControl,
   StyleSheet,
   Text,
+  TextInput,
   View,
 } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
@@ -32,6 +33,9 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
+const severityFilters = ["all", "critical", "high", "medium", "low", "info"] as const;
+type SeverityFilter = (typeof severityFilters)[number];
+
 export function ThreatsScreen({
   session,
   onLogout,
@@ -45,11 +49,33 @@ export function ThreatsScreen({
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [query, setQuery] = useState("");
+  const [severityFilter, setSeverityFilter] = useState<SeverityFilter>("all");
 
   const criticalCount = useMemo(
     () => threats.filter((threat) => threat.severity === "critical").length,
     [threats],
   );
+
+  const filteredThreats = useMemo(() => {
+    const normalizedQuery = query.trim().toLowerCase();
+
+    return threats.filter((threat) => {
+      const matchesSeverity = severityFilter === "all" || threat.severity === severityFilter;
+      const searchableText = [
+        threat.title,
+        threat.summary,
+        threat.severity,
+        threat.source?.name ?? "",
+        ...threat.tags,
+      ]
+        .join(" ")
+        .toLowerCase();
+      const matchesQuery = normalizedQuery.length === 0 || searchableText.includes(normalizedQuery);
+
+      return matchesSeverity && matchesQuery;
+    });
+  }, [query, severityFilter, threats]);
 
   async function loadThreats(isRefresh = false) {
     if (isRefresh) {
@@ -111,6 +137,39 @@ export function ThreatsScreen({
           </View>
         </View>
 
+        <View style={styles.searchPanel}>
+          <View style={styles.searchInputWrap}>
+            <Ionicons name="search-outline" size={18} color="#9fb0c7" />
+            <TextInput
+              onChangeText={setQuery}
+              placeholder="Search threats, tags or source"
+              placeholderTextColor="#64748b"
+              style={styles.searchInput}
+              value={query}
+            />
+            {query ? (
+              <Pressable onPress={() => setQuery("")} style={styles.clearSearchButton}>
+                <Ionicons name="close" size={16} color="#9fb0c7" />
+              </Pressable>
+            ) : null}
+          </View>
+
+          <FlatList
+            contentContainerStyle={styles.filterList}
+            data={severityFilters}
+            horizontal
+            keyExtractor={(item) => item}
+            renderItem={({ item }) => (
+              <SeverityFilterButton
+                isActive={severityFilter === item}
+                label={item}
+                onPress={() => setSeverityFilter(item)}
+              />
+            )}
+            showsHorizontalScrollIndicator={false}
+          />
+        </View>
+
         <Pressable
           onPress={onOpenIocSearch}
           style={({ pressed }) => [styles.lookupButton, pressed ? styles.lookupButtonPressed : null]}
@@ -139,7 +198,14 @@ export function ThreatsScreen({
         ) : (
           <FlatList
             contentContainerStyle={styles.listContent}
-            data={threats}
+            data={filteredThreats}
+            ListEmptyComponent={
+              <View style={styles.emptyBox}>
+                <Ionicons name="filter-outline" size={24} color="#9fb0c7" />
+                <Text style={styles.emptyTitle}>No threats match this view</Text>
+                <Text style={styles.emptyText}>Try changing the search text or severity filter.</Text>
+              </View>
+            }
             keyExtractor={(item) => item.id}
             refreshControl={
               <RefreshControl
@@ -155,6 +221,28 @@ export function ThreatsScreen({
         )}
       </View>
     </SafeAreaView>
+  );
+}
+
+function SeverityFilterButton({
+  isActive,
+  label,
+  onPress,
+}: {
+  isActive: boolean;
+  label: SeverityFilter;
+  onPress: () => void;
+}) {
+  const color = label === "all" ? "#58d68d" : severityColors[label] ?? "#9fb0c7";
+
+  return (
+    <Pressable
+      onPress={onPress}
+      style={[styles.filterButton, isActive ? styles.filterButtonActive : null]}
+    >
+      <View style={[styles.filterDot, { backgroundColor: color }]} />
+      <Text style={[styles.filterText, isActive ? styles.filterTextActive : null]}>{label}</Text>
+    </Pressable>
   );
 }
 
@@ -270,6 +358,66 @@ const styles = StyleSheet.create({
   lookupButtonPressed: {
     opacity: 0.82,
   },
+  searchPanel: {
+    gap: 10,
+    marginBottom: 14,
+  },
+  searchInputWrap: {
+    alignItems: "center",
+    backgroundColor: "#0d1b2d",
+    borderColor: "#263a55",
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 8,
+    minHeight: 48,
+    paddingHorizontal: 12,
+  },
+  searchInput: {
+    color: "#f7fbff",
+    flex: 1,
+    fontSize: 14,
+    minHeight: 44,
+  },
+  clearSearchButton: {
+    alignItems: "center",
+    height: 30,
+    justifyContent: "center",
+    width: 30,
+  },
+  filterList: {
+    gap: 8,
+    paddingRight: 4,
+  },
+  filterButton: {
+    alignItems: "center",
+    backgroundColor: "#0d1b2d",
+    borderColor: "#263a55",
+    borderRadius: 8,
+    borderWidth: 1,
+    flexDirection: "row",
+    gap: 7,
+    height: 38,
+    paddingHorizontal: 11,
+  },
+  filterButtonActive: {
+    backgroundColor: "#17324f",
+    borderColor: "#58d68d",
+  },
+  filterDot: {
+    borderRadius: 4,
+    height: 8,
+    width: 8,
+  },
+  filterText: {
+    color: "#9fb0c7",
+    fontSize: 12,
+    fontWeight: "800",
+    textTransform: "uppercase",
+  },
+  filterTextActive: {
+    color: "#f7fbff",
+  },
   lookupIcon: {
     alignItems: "center",
     backgroundColor: "#58d68d",
@@ -315,6 +463,25 @@ const styles = StyleSheet.create({
   listContent: {
     gap: 12,
     paddingBottom: 24,
+  },
+  emptyBox: {
+    alignItems: "center",
+    backgroundColor: "#0d1b2d",
+    borderColor: "#263a55",
+    borderRadius: 8,
+    borderWidth: 1,
+    gap: 8,
+    padding: 18,
+  },
+  emptyTitle: {
+    color: "#f7fbff",
+    fontSize: 15,
+    fontWeight: "800",
+  },
+  emptyText: {
+    color: "#9fb0c7",
+    fontSize: 13,
+    textAlign: "center",
   },
   card: {
     backgroundColor: "#0d1b2d",
