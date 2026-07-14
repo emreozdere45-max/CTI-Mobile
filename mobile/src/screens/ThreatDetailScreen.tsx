@@ -14,7 +14,7 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createFavorite, deleteFavorite, listFavorites } from "../api/favorites";
 import { deleteThreat, getThreatDetail } from "../api/threats";
-import type { AuthSession, Threat, ThreatDetail } from "../types/api";
+import type { AuthSession, Threat, ThreatDetail, ThreatIOC } from "../types/api";
 
 type ThreatDetailScreenProps = {
   session: AuthSession;
@@ -22,6 +22,7 @@ type ThreatDetailScreenProps = {
   onBack: () => void;
   onDeleted: () => void;
   onEdit: (threat: ThreatDetail) => void;
+  onOpenIoc: (ioc: ThreatIOC) => void;
 };
 
 const severityColors: Record<string, string> = {
@@ -32,7 +33,14 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
-export function ThreatDetailScreen({ session, threat, onBack, onDeleted, onEdit }: ThreatDetailScreenProps) {
+export function ThreatDetailScreen({
+  session,
+  threat,
+  onBack,
+  onDeleted,
+  onEdit,
+  onOpenIoc,
+}: ThreatDetailScreenProps) {
   const [detail, setDetail] = useState<ThreatDetail | null>(null);
   const [favoriteId, setFavoriteId] = useState<string | null>(null);
   const [isDeleting, setIsDeleting] = useState(false);
@@ -234,13 +242,23 @@ export function ThreatDetailScreen({ session, threat, onBack, onDeleted, onEdit 
                 <Section title="Related IOCs">
                   {detail.iocs.length ? (
                     detail.iocs.map((ioc) => (
-                      <View key={ioc.id} style={styles.iocRow}>
+                      <Pressable
+                        key={ioc.id}
+                        onPress={() => onOpenIoc(ioc)}
+                        style={({ pressed }) => [
+                          styles.iocRow,
+                          pressed ? styles.iocRowPressed : null,
+                        ]}
+                      >
                         <View>
                           <Text style={styles.iocType}>{ioc.type}</Text>
                           <Text style={styles.iocValue}>{ioc.value}</Text>
                         </View>
-                        <Text style={styles.riskScore}>{ioc.risk_score}</Text>
-                      </View>
+                        <View style={styles.iocAction}>
+                          <Text style={styles.riskScore}>{ioc.risk_score}</Text>
+                          <Ionicons name="chevron-forward" size={16} color="#9fb0c7" />
+                        </View>
+                      </Pressable>
                     ))
                   ) : (
                     <Text style={styles.mutedText}>No related IOC yet.</Text>
@@ -557,6 +575,9 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     paddingVertical: 10,
   },
+  iocRowPressed: {
+    opacity: 0.78,
+  },
   iocType: {
     color: "#58d68d",
     fontSize: 12,
@@ -572,6 +593,11 @@ const styles = StyleSheet.create({
     color: "#ffb020",
     fontSize: 18,
     fontWeight: "800",
+  },
+  iocAction: {
+    alignItems: "center",
+    flexDirection: "row",
+    gap: 8,
   },
   mutedText: {
     color: "#9fb0c7",

@@ -10,16 +10,30 @@ import { CreateThreatScreen } from "./src/screens/CreateThreatScreen";
 import { EditThreatScreen } from "./src/screens/EditThreatScreen";
 import { ThreatDetailScreen } from "./src/screens/ThreatDetailScreen";
 import { ThreatsScreen } from "./src/screens/ThreatsScreen";
-import type { AuthSession, Threat, ThreatDetail } from "./src/types/api";
+import type { AuthSession, Threat, ThreatDetail, ThreatIOC } from "./src/types/api";
 
 export default function App() {
   const [session, setSession] = useState<AuthSession | null>(null);
   const [selectedThreat, setSelectedThreat] = useState<Threat | null>(null);
   const [editingThreat, setEditingThreat] = useState<ThreatDetail | null>(null);
+  const [iocSearchReturnThreat, setIocSearchReturnThreat] = useState<Threat | null>(null);
   const [iocSearchState, setIocSearchState] = useState<IocSearchScreenState | null>(null);
   const [activeScreen, setActiveScreen] = useState<
     "threats" | "favorites" | "notifications" | "iocSearch" | "createThreat"
   >("threats");
+
+  function openIocSearchFromThreat(ioc: ThreatIOC) {
+    setIocSearchReturnThreat(selectedThreat);
+    setIocSearchState({
+      autoSearch: true,
+      favoriteIdsByIocId: {},
+      query: ioc.value,
+      result: null,
+      selectedType: ioc.type,
+    });
+    setSelectedThreat(null);
+    setActiveScreen("iocSearch");
+  }
 
   return (
     <SafeAreaProvider>
@@ -38,10 +52,12 @@ export default function App() {
           onBack={() => setSelectedThreat(null)}
           onDeleted={() => {
             setEditingThreat(null);
+            setIocSearchReturnThreat(null);
             setSelectedThreat(null);
             setActiveScreen("threats");
           }}
           onEdit={setEditingThreat}
+          onOpenIoc={openIocSearchFromThreat}
           session={session}
           threat={selectedThreat}
         />
@@ -62,8 +78,18 @@ export default function App() {
       ) : session && activeScreen === "iocSearch" ? (
         <IocSearchScreen
           initialState={iocSearchState}
-          onBack={() => setActiveScreen("threats")}
-          onSelectThreat={setSelectedThreat}
+          onBack={() => {
+            if (iocSearchReturnThreat) {
+              setSelectedThreat(iocSearchReturnThreat);
+              setIocSearchReturnThreat(null);
+            } else {
+              setActiveScreen("threats");
+            }
+          }}
+          onSelectThreat={(threat) => {
+            setIocSearchReturnThreat(null);
+            setSelectedThreat(threat);
+          }}
           onStateChange={setIocSearchState}
           session={session}
         />
@@ -84,6 +110,7 @@ export default function App() {
           onOpenNotifications={() => setActiveScreen("notifications")}
           onLogout={() => {
             setEditingThreat(null);
+            setIocSearchReturnThreat(null);
             setSelectedThreat(null);
             setIocSearchState(null);
             setActiveScreen("threats");
@@ -96,6 +123,7 @@ export default function App() {
         <LoginScreen
           onLoginSuccess={(nextSession) => {
             setEditingThreat(null);
+            setIocSearchReturnThreat(null);
             setSelectedThreat(null);
             setIocSearchState(null);
             setActiveScreen("threats");

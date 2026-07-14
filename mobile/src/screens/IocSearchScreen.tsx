@@ -24,6 +24,7 @@ type IocSearchScreenProps = {
 };
 
 export type IocSearchScreenState = {
+  autoSearch?: boolean;
   favoriteIdsByIocId: Record<string, string>;
   query: string;
   result: IocSearchData | null;
@@ -64,6 +65,12 @@ export function IocSearchScreen({
       selectedType,
     });
   }, [favoriteIdsByIocId, onStateChange, query, result, selectedType]);
+
+  useEffect(() => {
+    if (initialState?.autoSearch) {
+      void handleSearch();
+    }
+  }, []);
 
   async function handleSearch() {
     const trimmedQuery = query.trim();
