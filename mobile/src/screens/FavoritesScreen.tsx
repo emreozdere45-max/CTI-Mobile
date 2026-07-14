@@ -12,11 +12,14 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { listFavorites } from "../api/favorites";
+import { MainTabBar, type MainTab } from "../components/MainTabBar";
 import type { AuthSession, Favorite, Threat } from "../types/api";
 
 type FavoritesScreenProps = {
   session: AuthSession;
+  activeTab: MainTab;
   onBack: () => void;
+  onSelectTab: (tab: MainTab) => void;
   onSelectThreat: (threat: Threat) => void;
 };
 
@@ -28,7 +31,13 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
-export function FavoritesScreen({ session, onBack, onSelectThreat }: FavoritesScreenProps) {
+export function FavoritesScreen({
+  activeTab,
+  session,
+  onBack,
+  onSelectTab,
+  onSelectThreat,
+}: FavoritesScreenProps) {
   const [favorites, setFavorites] = useState<Favorite[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [isRefreshing, setIsRefreshing] = useState(false);
@@ -100,6 +109,8 @@ export function FavoritesScreen({ session, onBack, onSelectThreat }: FavoritesSc
             )}
           />
         )}
+
+        <MainTabBar activeTab={activeTab} onSelectTab={onSelectTab} />
       </View>
     </SafeAreaView>
   );

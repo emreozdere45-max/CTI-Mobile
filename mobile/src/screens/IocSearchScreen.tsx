@@ -13,12 +13,15 @@ import { SafeAreaView } from "react-native-safe-area-context";
 
 import { createFavorite, deleteFavorite, listFavorites } from "../api/favorites";
 import { searchIocs } from "../api/iocs";
+import { MainTabBar, type MainTab } from "../components/MainTabBar";
 import type { AuthSession, IocSearchData, IocSearchResult, Threat } from "../types/api";
 
 type IocSearchScreenProps = {
   session: AuthSession;
+  activeTab: MainTab;
   initialState: IocSearchScreenState | null;
   onBack: () => void;
+  onSelectTab: (tab: MainTab) => void;
   onSelectThreat: (threat: Threat) => void;
   onStateChange: (state: IocSearchScreenState) => void;
 };
@@ -40,9 +43,11 @@ const riskColors = {
 const typeOptions = ["auto", "domain", "ip", "url", "hash", "email"];
 
 export function IocSearchScreen({
+  activeTab,
   session,
   initialState,
   onBack,
+  onSelectTab,
   onSelectThreat,
   onStateChange,
 }: IocSearchScreenProps) {
@@ -246,6 +251,8 @@ export function IocSearchScreen({
             />
           )}
         />
+
+        <MainTabBar activeTab={activeTab} onSelectTab={onSelectTab} />
       </View>
     </SafeAreaView>
   );

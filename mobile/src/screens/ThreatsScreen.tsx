@@ -13,15 +13,17 @@ import {
 import { SafeAreaView } from "react-native-safe-area-context";
 
 import { listThreats } from "../api/threats";
+import { MainTabBar, type MainTab } from "../components/MainTabBar";
 import type { AuthSession, Threat } from "../types/api";
 
 type ThreatsScreenProps = {
   session: AuthSession;
-  onLogout: () => void;
   onOpenCreateThreat: () => void;
   onOpenFavorites: () => void;
+  onOpenHome: () => void;
   onOpenIocSearch: () => void;
   onOpenNotifications: () => void;
+  onSelectTab: (tab: MainTab) => void;
   onSelectThreat: (threat: Threat) => void;
 };
 
@@ -38,11 +40,12 @@ type SeverityFilter = (typeof severityFilters)[number];
 
 export function ThreatsScreen({
   session,
-  onLogout,
   onOpenCreateThreat,
   onOpenFavorites,
+  onOpenHome,
   onOpenIocSearch,
   onOpenNotifications,
+  onSelectTab,
   onSelectThreat,
 }: ThreatsScreenProps) {
   const [threats, setThreats] = useState<Threat[]>([]);
@@ -111,6 +114,9 @@ export function ThreatsScreen({
           </View>
 
           <View style={styles.headerActions}>
+            <Pressable onPress={onOpenHome} style={styles.iconButton}>
+              <Ionicons name="grid-outline" size={22} color="#d7e2f0" />
+            </Pressable>
             <Pressable onPress={onOpenCreateThreat} style={styles.iconButton}>
               <Ionicons name="add" size={24} color="#d7e2f0" />
             </Pressable>
@@ -119,9 +125,6 @@ export function ThreatsScreen({
             </Pressable>
             <Pressable onPress={onOpenFavorites} style={styles.iconButton}>
               <Ionicons name="star-outline" size={22} color="#d7e2f0" />
-            </Pressable>
-            <Pressable onPress={onLogout} style={styles.iconButton}>
-              <Ionicons name="log-out-outline" size={22} color="#d7e2f0" />
             </Pressable>
           </View>
         </View>
@@ -219,6 +222,8 @@ export function ThreatsScreen({
             )}
           />
         )}
+
+        <MainTabBar activeTab="threats" onSelectTab={onSelectTab} />
       </View>
     </SafeAreaView>
   );

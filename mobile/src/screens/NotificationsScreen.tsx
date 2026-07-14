@@ -17,11 +17,14 @@ import {
   markNotificationRead,
 } from "../api/notifications";
 import { getThreatDetail } from "../api/threats";
+import { MainTabBar, type MainTab } from "../components/MainTabBar";
 import type { AuthSession, Notification, Threat } from "../types/api";
 
 type NotificationsScreenProps = {
   session: AuthSession;
+  activeTab: MainTab | null;
   onBack: () => void;
+  onSelectTab: (tab: MainTab) => void;
   onSelectThreat: (threat: Threat) => void;
 };
 
@@ -33,7 +36,13 @@ const severityColors: Record<string, string> = {
   info: "#9fb0c7",
 };
 
-export function NotificationsScreen({ session, onBack, onSelectThreat }: NotificationsScreenProps) {
+export function NotificationsScreen({
+  activeTab,
+  session,
+  onBack,
+  onSelectTab,
+  onSelectThreat,
+}: NotificationsScreenProps) {
   const [notifications, setNotifications] = useState<Notification[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [unreadOnly, setUnreadOnly] = useState(false);
@@ -202,6 +211,8 @@ export function NotificationsScreen({ session, onBack, onSelectThreat }: Notific
             )}
           />
         )}
+
+        <MainTabBar activeTab={activeTab} onSelectTab={onSelectTab} />
       </View>
     </SafeAreaView>
   );
