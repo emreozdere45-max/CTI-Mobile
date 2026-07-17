@@ -35,9 +35,9 @@ export type IocSearchScreenState = {
 };
 
 const riskColors = {
-  high: "#ff6b6b",
-  medium: "#ffb020",
-  low: "#58d68d",
+  high: "#dc2626",
+  medium: "#ea580c",
+  low: "#16a34a",
 };
 
 const typeOptions = ["auto", "domain", "ip", "url", "hash", "email"];
@@ -147,7 +147,7 @@ export function IocSearchScreen({
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
-            <Ionicons name="arrow-back" size={22} color="#d7e2f0" />
+            <Ionicons name="arrow-back" size={22} color="#111827" />
           </Pressable>
           <View style={styles.headerText}>
             <Text style={styles.eyebrow}>Indicator lookup</Text>
@@ -159,14 +159,14 @@ export function IocSearchScreen({
         <View style={styles.searchPanel}>
           <Text style={styles.inputLabel}>IOC value</Text>
           <View style={styles.inputRow}>
-            <Ionicons name="search-outline" size={19} color="#9fb0c7" />
+            <Ionicons name="search-outline" size={19} color="#6b7280" />
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
               onChangeText={setQuery}
               onSubmitEditing={() => void handleSearch()}
               placeholder="domain, IP, URL, hash or email"
-              placeholderTextColor="#6f8097"
+              placeholderTextColor="#9ca3af"
               returnKeyType="search"
               style={styles.input}
               value={query}
@@ -204,9 +204,9 @@ export function IocSearchScreen({
             ]}
           >
             {isLoading ? (
-              <ActivityIndicator color="#06111f" size="small" />
+              <ActivityIndicator color="#ffffff" size="small" />
             ) : (
-              <Ionicons name="shield-checkmark-outline" size={18} color="#06111f" />
+              <Ionicons name="shield-checkmark-outline" size={18} color="#ffffff" />
             )}
             <Text style={styles.searchButtonText}>Search IOC</Text>
           </Pressable>
@@ -303,12 +303,12 @@ function IocResultCard({
           ]}
         >
           {isUpdatingFavorite ? (
-            <ActivityIndicator color={isFavorite ? "#06111f" : "#58d68d"} size="small" />
+            <ActivityIndicator color={isFavorite ? "#ffffff" : "#111827"} size="small" />
           ) : (
             <Ionicons
               name={isFavorite ? "star" : "star-outline"}
               size={18}
-              color={isFavorite ? "#06111f" : "#58d68d"}
+              color={isFavorite ? "#ffffff" : "#111827"}
             />
           )}
         </Pressable>
@@ -349,7 +349,7 @@ function IocResultCard({
 function EmptyState({ hasSearched }: { hasSearched: boolean }) {
   return (
     <View style={styles.emptyBox}>
-      <Ionicons name="search-outline" size={30} color="#9fb0c7" />
+      <Ionicons name="search-outline" size={30} color="#6b7280" />
       <Text style={styles.emptyTitle}>{hasSearched ? "No IOC found" : "Ready to search"}</Text>
       <Text style={styles.emptyText}>
         {hasSearched
@@ -363,7 +363,7 @@ function EmptyState({ hasSearched }: { hasSearched: boolean }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#06111f",
+    backgroundColor: "#f3f6fa",
   },
   container: {
     flex: 1,
@@ -380,21 +380,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   eyebrow: {
-    color: "#58d68d",
+    color: "#6b7280",
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: "900",
     textTransform: "uppercase",
   },
   title: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 25,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 0,
   },
   iconButton: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     height: 44,
@@ -405,15 +405,15 @@ const styles = StyleSheet.create({
     width: 44,
   },
   searchPanel: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 12,
     padding: 14,
   },
   inputLabel: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 12,
     fontWeight: "800",
     marginBottom: 8,
@@ -421,8 +421,8 @@ const styles = StyleSheet.create({
   },
   inputRow: {
     alignItems: "center",
-    backgroundColor: "#06111f",
-    borderColor: "#263a55",
+    backgroundColor: "#f8fafc",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
@@ -430,7 +430,7 @@ const styles = StyleSheet.create({
     paddingHorizontal: 12,
   },
   input: {
-    color: "#f7fbff",
+    color: "#111827",
     flex: 1,
     fontSize: 15,
     minHeight: 46,
@@ -442,28 +442,28 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   typeChip: {
-    backgroundColor: "#13243a",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     paddingHorizontal: 10,
     paddingVertical: 8,
   },
   typeChipActive: {
-    backgroundColor: "#58d68d",
-    borderColor: "#58d68d",
+    backgroundColor: "#111827",
+    borderColor: "#111827",
   },
   typeChipText: {
-    color: "#d7e2f0",
+    color: "#6b7280",
     fontSize: 12,
     fontWeight: "800",
   },
   typeChipTextActive: {
-    color: "#06111f",
+    color: "#ffffff",
   },
   searchButton: {
     alignItems: "center",
-    backgroundColor: "#58d68d",
+    backgroundColor: "#111827",
     borderRadius: 8,
     flexDirection: "row",
     gap: 8,
@@ -475,35 +475,35 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   searchButtonText: {
-    color: "#06111f",
+    color: "#ffffff",
     fontSize: 15,
     fontWeight: "900",
   },
   errorBox: {
-    backgroundColor: "#3b1620",
-    borderColor: "#8e2f45",
+    backgroundColor: "#fee2e2",
+    borderColor: "#fecaca",
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 12,
     padding: 12,
   },
   errorText: {
-    color: "#ffd9df",
+    color: "#991b1b",
   },
   successBox: {
-    backgroundColor: "#123222",
-    borderColor: "#2f8756",
+    backgroundColor: "#dcfce7",
+    borderColor: "#bbf7d0",
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 12,
     padding: 12,
   },
   successText: {
-    color: "#d7ffe7",
+    color: "#166534",
   },
   resultMeta: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
@@ -513,7 +513,7 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   resultMetaText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 12,
     fontWeight: "700",
   },
@@ -522,14 +522,14 @@ const styles = StyleSheet.create({
     paddingBottom: 24,
   },
   card: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     padding: 14,
   },
   cardFavorite: {
-    borderColor: "#58d68d",
+    borderColor: "#111827",
   },
   cardDisabled: {
     opacity: 0.78,
@@ -560,9 +560,9 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   typeBadge: {
-    backgroundColor: "#13243a",
+    backgroundColor: "#f3f4f6",
     borderRadius: 6,
-    color: "#d7e2f0",
+    color: "#374151",
     fontSize: 12,
     fontWeight: "800",
     marginLeft: "auto",
@@ -572,7 +572,7 @@ const styles = StyleSheet.create({
   },
   favoriteIconButton: {
     alignItems: "center",
-    borderColor: "#58d68d",
+    borderColor: "#111827",
     borderRadius: 8,
     borderWidth: 1,
     height: 34,
@@ -580,25 +580,25 @@ const styles = StyleSheet.create({
     width: 34,
   },
   favoriteIconButtonActive: {
-    backgroundColor: "#58d68d",
+    backgroundColor: "#111827",
   },
   favoriteIconButtonPressed: {
     opacity: 0.72,
   },
   iocValue: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 17,
     fontWeight: "800",
     lineHeight: 23,
   },
   favoriteHint: {
-    color: "#58d68d",
+    color: "#111827",
     fontSize: 12,
     fontWeight: "900",
     marginTop: 12,
   },
   favoriteHintActive: {
-    color: "#d7ffe7",
+    color: "#111827",
   },
   scoreGrid: {
     flexDirection: "row",
@@ -606,39 +606,39 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   scoreBox: {
-    backgroundColor: "#06111f",
-    borderColor: "#263a55",
+    backgroundColor: "#f8fafc",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
     padding: 10,
   },
   scoreValue: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 20,
     fontWeight: "900",
   },
   scoreLabel: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 11,
     marginTop: 2,
   },
   emptyBox: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
     padding: 24,
   },
   emptyTitle: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 17,
     fontWeight: "800",
   },
   emptyText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 14,
     lineHeight: 20,
     textAlign: "center",

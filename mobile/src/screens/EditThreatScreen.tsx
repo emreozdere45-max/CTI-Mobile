@@ -85,7 +85,7 @@ export function EditThreatScreen({ session, threat, onBack, onUpdated }: EditThr
       >
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
-            <Ionicons name="arrow-back" size={22} color="#d7e2f0" />
+            <Ionicons name="arrow-back" size={22} color="#111827" />
           </Pressable>
           <View style={styles.headerText}>
             <Text style={styles.eyebrow}>Threat management</Text>
@@ -118,7 +118,7 @@ export function EditThreatScreen({ session, threat, onBack, onUpdated }: EditThr
           />
 
           <View style={styles.infoBox}>
-            <Ionicons name="sparkles-outline" size={20} color="#58d68d" />
+            <Ionicons name="sparkles-outline" size={20} color="#111827" />
             <Text style={styles.infoText}>
               Severity and confidence will be recalculated when you save.
             </Text>
@@ -142,10 +142,10 @@ export function EditThreatScreen({ session, threat, onBack, onUpdated }: EditThr
             ]}
           >
             {isSubmitting ? (
-              <ActivityIndicator color="#06111f" />
+              <ActivityIndicator color="#ffffff" />
             ) : (
               <>
-                <Ionicons name="save-outline" size={20} color="#06111f" />
+                <Ionicons name="save-outline" size={20} color="#ffffff" />
                 <Text style={styles.submitButtonText}>Save changes</Text>
               </>
             )}
@@ -168,7 +168,7 @@ function Field({
     <View style={styles.fieldBlock}>
       <Text style={styles.label}>{label}</Text>
       <TextInput
-        placeholderTextColor="#64748b"
+        placeholderTextColor="#9ca3af"
         style={[
           styles.input,
           inputProps.multiline ? styles.multilineInput : null,
@@ -183,7 +183,7 @@ function Field({
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#06111f",
+    backgroundColor: "#f3f6fa",
   },
   keyboardView: {
     flex: 1,
@@ -197,8 +197,8 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     height: 46,
@@ -209,15 +209,15 @@ const styles = StyleSheet.create({
     flex: 1,
   },
   eyebrow: {
-    color: "#58d68d",
+    color: "#6b7280",
     fontSize: 13,
-    fontWeight: "800",
+    fontWeight: "900",
     textTransform: "uppercase",
   },
   title: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 30,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 0,
   },
   content: {
@@ -226,29 +226,29 @@ const styles = StyleSheet.create({
     paddingBottom: 32,
   },
   errorBox: {
-    backgroundColor: "#3b1620",
-    borderColor: "#8e2f45",
+    backgroundColor: "#fee2e2",
+    borderColor: "#fecaca",
     borderRadius: 8,
     borderWidth: 1,
     padding: 12,
   },
   errorText: {
-    color: "#ffd9df",
+    color: "#991b1b",
   },
   fieldBlock: {
     gap: 8,
   },
   label: {
-    color: "#d7e2f0",
+    color: "#374151",
     fontSize: 13,
     fontWeight: "800",
   },
   input: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 15,
     minHeight: 48,
     paddingHorizontal: 12,
@@ -263,8 +263,8 @@ const styles = StyleSheet.create({
   },
   infoBox: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
@@ -272,14 +272,14 @@ const styles = StyleSheet.create({
     padding: 12,
   },
   infoText: {
-    color: "#d7e2f0",
+    color: "#4b5563",
     flex: 1,
     fontSize: 13,
     lineHeight: 18,
   },
   submitButton: {
     alignItems: "center",
-    backgroundColor: "#58d68d",
+    backgroundColor: "#111827",
     borderRadius: 8,
     flexDirection: "row",
     gap: 8,
@@ -291,7 +291,7 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   submitButtonText: {
-    color: "#06111f",
+    color: "#ffffff",
     fontSize: 16,
     fontWeight: "900",
   },

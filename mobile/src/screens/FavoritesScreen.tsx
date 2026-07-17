@@ -24,11 +24,11 @@ type FavoritesScreenProps = {
 };
 
 const severityColors: Record<string, string> = {
-  critical: "#ff6b6b",
-  high: "#ffb020",
-  medium: "#58a6ff",
-  low: "#58d68d",
-  info: "#9fb0c7",
+  critical: "#dc2626",
+  high: "#ea580c",
+  medium: "#2563eb",
+  low: "#16a34a",
+  info: "#64748b",
 };
 
 export function FavoritesScreen({
@@ -71,7 +71,7 @@ export function FavoritesScreen({
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
-            <Ionicons name="arrow-back" size={22} color="#d7e2f0" />
+            <Ionicons name="arrow-back" size={22} color="#111827" />
           </Pressable>
           <View style={styles.headerText}>
             <Text style={styles.eyebrow}>Saved intelligence</Text>
@@ -88,7 +88,7 @@ export function FavoritesScreen({
 
         {isLoading ? (
           <View style={styles.loadingBox}>
-            <ActivityIndicator color="#58d68d" />
+            <ActivityIndicator color="#111827" />
             <Text style={styles.loadingText}>Loading favorites</Text>
           </View>
         ) : (
@@ -101,7 +101,7 @@ export function FavoritesScreen({
               <RefreshControl
                 onRefresh={() => void loadFavorites(true)}
                 refreshing={isRefreshing}
-                tintColor="#58d68d"
+                tintColor="#111827"
               />
             }
             renderItem={({ item }) => (
@@ -140,7 +140,7 @@ function FavoriteCard({
 }) {
   const isThreat = favorite.target_type === "threat";
   const threat = isThreat ? toThreat(favorite) : null;
-  const severityColor = threat ? severityColors[threat.severity] ?? "#9fb0c7" : "#58d68d";
+  const severityColor = threat ? severityColors[threat.severity] ?? "#64748b" : "#111827";
   const iocType = typeof favorite.target.type === "string" ? favorite.target.type : "ioc";
   const iocValue = typeof favorite.target.value === "string" ? favorite.target.value : favorite.target_id;
   const iocRiskScore =
@@ -157,7 +157,7 @@ function FavoriteCard({
       style={({ pressed }) => [styles.card, pressed ? styles.cardPressed : null]}
     >
       <View style={styles.cardHeader}>
-        <Ionicons name="star" size={17} color="#58d68d" />
+        <Ionicons name="star" size={17} color="#111827" />
         <Text style={[styles.severityText, { color: severityColor }]}>
           {threat ? threat.severity : iocType}
         </Text>
@@ -168,7 +168,7 @@ function FavoriteCard({
       </Text>
       <View style={styles.cardFooter}>
         <Text style={styles.metaText}>{threat ? "Saved threat" : "Saved IOC"}</Text>
-        {threat ? <Ionicons name="chevron-forward" size={16} color="#9fb0c7" /> : null}
+        {threat ? <Ionicons name="chevron-forward" size={16} color="#6b7280" /> : null}
       </View>
     </Pressable>
   );
@@ -177,7 +177,7 @@ function FavoriteCard({
 function EmptyState() {
   return (
     <View style={styles.emptyBox}>
-      <Ionicons name="star-outline" size={30} color="#9fb0c7" />
+      <Ionicons name="star-outline" size={30} color="#6b7280" />
       <Text style={styles.emptyTitle}>No favorites yet</Text>
       <Text style={styles.emptyText}>Open a threat or IOC result and tap the star button.</Text>
     </View>
@@ -187,7 +187,7 @@ function EmptyState() {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#06111f",
+    backgroundColor: "#f3f6fa",
   },
   container: {
     flex: 1,
@@ -204,21 +204,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   eyebrow: {
-    color: "#58d68d",
+    color: "#6b7280",
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: "900",
     textTransform: "uppercase",
   },
   title: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 26,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 0,
   },
   iconButton: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     height: 44,
@@ -230,15 +230,15 @@ const styles = StyleSheet.create({
     width: 44,
   },
   errorBox: {
-    backgroundColor: "#3b1620",
-    borderColor: "#8e2f45",
+    backgroundColor: "#fee2e2",
+    borderColor: "#fecaca",
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 14,
     padding: 12,
   },
   errorText: {
-    color: "#ffd9df",
+    color: "#991b1b",
   },
   loadingBox: {
     alignItems: "center",
@@ -247,15 +247,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   loadingText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
   },
   listContent: {
     gap: 12,
     paddingBottom: 24,
   },
   card: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     padding: 14,
@@ -275,13 +275,13 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   cardTitle: {
-    color: "#f7fbff",
-    fontSize: 17,
-    fontWeight: "800",
-    lineHeight: 23,
+    color: "#111827",
+    fontSize: 18,
+    fontWeight: "900",
+    lineHeight: 24,
   },
   cardSummary: {
-    color: "#b7c4d6",
+    color: "#4b5563",
     fontSize: 14,
     lineHeight: 20,
     marginTop: 8,
@@ -293,25 +293,25 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   metaText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 12,
   },
   emptyBox: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
     padding: 24,
   },
   emptyTitle: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 17,
     fontWeight: "800",
   },
   emptyText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 14,
     textAlign: "center",
   },

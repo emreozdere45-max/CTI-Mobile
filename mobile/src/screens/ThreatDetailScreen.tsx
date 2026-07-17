@@ -27,11 +27,11 @@ type ThreatDetailScreenProps = {
 };
 
 const severityColors: Record<string, string> = {
-  critical: "#ff6b6b",
-  high: "#ffb020",
-  medium: "#58a6ff",
-  low: "#58d68d",
-  info: "#9fb0c7",
+  critical: "#dc2626",
+  high: "#ea580c",
+  medium: "#2563eb",
+  low: "#16a34a",
+  info: "#64748b",
 };
 
 export function ThreatDetailScreen({
@@ -52,7 +52,7 @@ export function ThreatDetailScreen({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
 
-  const severityColor = severityColors[(detail ?? threat).severity] ?? "#9fb0c7";
+  const severityColor = severityColors[(detail ?? threat).severity] ?? "#64748b";
 
   async function loadDetail() {
     setIsLoading(true);
@@ -159,7 +159,7 @@ export function ThreatDetailScreen({
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
-            <Ionicons name="arrow-back" size={22} color="#d7e2f0" />
+            <Ionicons name="arrow-back" size={22} color="#111827" />
           </Pressable>
           <Text style={styles.headerTitle}>Threat detail</Text>
           <Pressable
@@ -172,12 +172,12 @@ export function ThreatDetailScreen({
             ]}
           >
             {isFavoriteLoading ? (
-              <ActivityIndicator color="#06111f" size="small" />
+              <ActivityIndicator color="#ffffff" size="small" />
             ) : (
               <Ionicons
                 name={favoriteId ? "star" : "star-outline"}
                 size={22}
-                color={favoriteId ? "#06111f" : "#d7e2f0"}
+                color={favoriteId ? "#ffffff" : "#111827"}
               />
             )}
           </Pressable>
@@ -185,7 +185,7 @@ export function ThreatDetailScreen({
 
         {isLoading ? (
           <View style={styles.loadingBox}>
-            <ActivityIndicator color="#58d68d" />
+            <ActivityIndicator color="#111827" />
             <Text style={styles.loadingText}>Loading detail</Text>
           </View>
         ) : (
@@ -269,9 +269,9 @@ export function ThreatDetailScreen({
                     ]}
                   >
                     {isSummaryLoading ? (
-                      <ActivityIndicator color="#06111f" size="small" />
+                      <ActivityIndicator color="#ffffff" size="small" />
                     ) : (
-                      <Ionicons name="sparkles-outline" size={18} color="#06111f" />
+                      <Ionicons name="sparkles-outline" size={18} color="#ffffff" />
                     )}
                     <Text style={styles.aiButtonText}>
                       {aiSummary ? "Regenerate summary" : "Generate summary"}
@@ -306,7 +306,7 @@ export function ThreatDetailScreen({
                         </View>
                         <View style={styles.iocAction}>
                           <Text style={styles.riskScore}>{ioc.risk_score}</Text>
-                          <Ionicons name="chevron-forward" size={16} color="#9fb0c7" />
+                          <Ionicons name="chevron-forward" size={16} color="#6b7280" />
                         </View>
                       </Pressable>
                     ))
@@ -318,7 +318,7 @@ export function ThreatDetailScreen({
                 <Section title="Recommended Actions">
                   {detail.recommended_actions.map((action) => (
                     <View key={action} style={styles.actionRow}>
-                      <Ionicons name="checkmark-circle-outline" size={18} color="#58d68d" />
+                      <Ionicons name="checkmark-circle-outline" size={18} color="#111827" />
                       <Text style={styles.actionText}>{action}</Text>
                     </View>
                   ))}
@@ -356,7 +356,7 @@ function ActionButton({
         disabled ? styles.disabledActionButton : null,
       ]}
     >
-      <Ionicons name={icon} size={17} color={destructive ? "#ffd9df" : "#d7e2f0"} />
+      <Ionicons name={icon} size={17} color={destructive ? "#991b1b" : "#111827"} />
       <Text style={[styles.actionButtonText, destructive ? styles.destructiveActionText : null]}>
         {label}
       </Text>
@@ -420,7 +420,7 @@ function Section({ children, title }: { children: React.ReactNode; title: string
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#06111f",
+    backgroundColor: "#f3f6fa",
   },
   container: {
     flex: 1,
@@ -434,14 +434,14 @@ const styles = StyleSheet.create({
     marginBottom: 14,
   },
   headerTitle: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 17,
     fontWeight: "800",
   },
   iconButton: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     height: 44,
@@ -452,8 +452,8 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   favoriteButtonActive: {
-    backgroundColor: "#58d68d",
-    borderColor: "#58d68d",
+    backgroundColor: "#111827",
+    borderColor: "#111827",
   },
   iconButtonPlaceholder: {
     height: 44,
@@ -466,7 +466,7 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   loadingText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
   },
   content: {
     gap: 12,
@@ -478,8 +478,8 @@ const styles = StyleSheet.create({
   },
   actionButton: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
@@ -490,61 +490,61 @@ const styles = StyleSheet.create({
     paddingHorizontal: 8,
   },
   actionButtonText: {
-    color: "#d7e2f0",
+    color: "#111827",
     fontSize: 13,
     fontWeight: "800",
   },
   destructiveActionButton: {
-    backgroundColor: "#3b1620",
-    borderColor: "#8e2f45",
+    backgroundColor: "#fee2e2",
+    borderColor: "#fecaca",
   },
   destructiveActionText: {
-    color: "#ffd9df",
+    color: "#991b1b",
   },
   disabledActionButton: {
     opacity: 0.55,
   },
   errorBox: {
-    backgroundColor: "#3b1620",
-    borderColor: "#8e2f45",
+    backgroundColor: "#fee2e2",
+    borderColor: "#fecaca",
     borderRadius: 8,
     borderWidth: 1,
     padding: 12,
   },
   errorText: {
-    color: "#ffd9df",
+    color: "#991b1b",
   },
   successBox: {
-    backgroundColor: "#123222",
-    borderColor: "#2f8756",
+    backgroundColor: "#dcfce7",
+    borderColor: "#bbf7d0",
     borderRadius: 8,
     borderWidth: 1,
     padding: 12,
   },
   successText: {
-    color: "#d7ffe7",
+    color: "#166534",
   },
   aiSummaryBox: {
-    backgroundColor: "#06111f",
-    borderColor: "#263a55",
+    backgroundColor: "#f8fafc",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     padding: 12,
   },
   aiSummaryText: {
-    color: "#d7e2f0",
+    color: "#374151",
     fontSize: 14,
     lineHeight: 21,
   },
   aiSummaryMeta: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 12,
     fontWeight: "800",
     marginTop: 10,
   },
   aiButton: {
     alignItems: "center",
-    backgroundColor: "#58d68d",
+    backgroundColor: "#111827",
     borderRadius: 8,
     flexDirection: "row",
     gap: 8,
@@ -556,13 +556,13 @@ const styles = StyleSheet.create({
     opacity: 0.82,
   },
   aiButtonText: {
-    color: "#06111f",
+    color: "#ffffff",
     fontSize: 14,
     fontWeight: "900",
   },
   summaryPanel: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     padding: 16,
@@ -584,14 +584,14 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   title: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 23,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 0,
     lineHeight: 30,
   },
   summary: {
-    color: "#b7c4d6",
+    color: "#4b5563",
     fontSize: 15,
     lineHeight: 22,
     marginTop: 10,
@@ -602,38 +602,38 @@ const styles = StyleSheet.create({
     marginTop: 16,
   },
   metricBox: {
-    backgroundColor: "#06111f",
-    borderColor: "#263a55",
+    backgroundColor: "#f8fafc",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flex: 1,
     padding: 12,
   },
   metricValue: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 17,
     fontWeight: "800",
   },
   metricLabel: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 12,
     marginTop: 2,
   },
   section: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     padding: 14,
   },
   sectionTitle: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 16,
     fontWeight: "800",
     marginBottom: 10,
   },
   bodyText: {
-    color: "#b7c4d6",
+    color: "#4b5563",
     fontSize: 14,
     lineHeight: 21,
   },
@@ -643,11 +643,11 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   tag: {
-    backgroundColor: "#17324f",
-    borderColor: "#2e5f8f",
+    backgroundColor: "#f3f4f6",
+    borderColor: "#e5e7eb",
     borderRadius: 8,
     borderWidth: 1,
-    color: "#d7e2f0",
+    color: "#374151",
     fontSize: 12,
     fontWeight: "700",
     paddingHorizontal: 10,
@@ -655,7 +655,7 @@ const styles = StyleSheet.create({
   },
   iocRow: {
     alignItems: "center",
-    borderBottomColor: "#263a55",
+    borderBottomColor: "#e5e7eb",
     borderBottomWidth: 1,
     flexDirection: "row",
     justifyContent: "space-between",
@@ -665,18 +665,18 @@ const styles = StyleSheet.create({
     opacity: 0.78,
   },
   iocType: {
-    color: "#58d68d",
+    color: "#111827",
     fontSize: 12,
     fontWeight: "800",
     textTransform: "uppercase",
   },
   iocValue: {
-    color: "#f7fbff",
+    color: "#374151",
     fontSize: 14,
     marginTop: 2,
   },
   riskScore: {
-    color: "#ffb020",
+    color: "#ea580c",
     fontSize: 18,
     fontWeight: "800",
   },
@@ -686,7 +686,7 @@ const styles = StyleSheet.create({
     gap: 8,
   },
   mutedText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
   },
   actionRow: {
     alignItems: "flex-start",
@@ -695,7 +695,7 @@ const styles = StyleSheet.create({
     marginBottom: 9,
   },
   actionText: {
-    color: "#b7c4d6",
+    color: "#4b5563",
     flex: 1,
     fontSize: 14,
     lineHeight: 20,

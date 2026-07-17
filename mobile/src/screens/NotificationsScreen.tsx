@@ -29,11 +29,11 @@ type NotificationsScreenProps = {
 };
 
 const severityColors: Record<string, string> = {
-  critical: "#ff6b6b",
-  high: "#ffb020",
-  medium: "#58a6ff",
-  low: "#58d68d",
-  info: "#9fb0c7",
+  critical: "#dc2626",
+  high: "#ea580c",
+  medium: "#2563eb",
+  low: "#16a34a",
+  info: "#64748b",
 };
 
 export function NotificationsScreen({
@@ -147,7 +147,7 @@ export function NotificationsScreen({
       <View style={styles.container}>
         <View style={styles.header}>
           <Pressable onPress={onBack} style={styles.iconButton}>
-            <Ionicons name="arrow-back" size={22} color="#d7e2f0" />
+            <Ionicons name="arrow-back" size={22} color="#111827" />
           </Pressable>
           <View style={styles.headerText}>
             <Text style={styles.eyebrow}>{unreadCount} unread</Text>
@@ -155,9 +155,9 @@ export function NotificationsScreen({
           </View>
           <Pressable disabled={isUpdating} onPress={handleMarkAll} style={styles.iconButton}>
             {isUpdating ? (
-              <ActivityIndicator color="#58d68d" size="small" />
+              <ActivityIndicator color="#111827" size="small" />
             ) : (
-              <Ionicons name="checkmark-done-outline" size={22} color="#d7e2f0" />
+              <Ionicons name="checkmark-done-outline" size={22} color="#111827" />
             )}
           </Pressable>
         </View>
@@ -170,7 +170,7 @@ export function NotificationsScreen({
             <Ionicons
               name={unreadOnly ? "radio-button-on" : "radio-button-off"}
               size={18}
-              color={unreadOnly ? "#06111f" : "#d7e2f0"}
+              color={unreadOnly ? "#ffffff" : "#6b7280"}
             />
             <Text style={[styles.filterText, unreadOnly ? styles.filterTextActive : null]}>
               Unread only
@@ -186,7 +186,7 @@ export function NotificationsScreen({
 
         {isLoading ? (
           <View style={styles.loadingBox}>
-            <ActivityIndicator color="#58d68d" />
+            <ActivityIndicator color="#111827" />
             <Text style={styles.loadingText}>Loading notifications</Text>
           </View>
         ) : (
@@ -199,7 +199,7 @@ export function NotificationsScreen({
               <RefreshControl
                 onRefresh={() => void loadNotifications(true)}
                 refreshing={isRefreshing}
-                tintColor="#58d68d"
+                tintColor="#111827"
               />
             }
             renderItem={({ item }) => (
@@ -227,7 +227,7 @@ function NotificationCard({
   onMarkRead: () => void;
   onOpen: () => void;
 }) {
-  const severityColor = severityColors[notification.severity] ?? "#9fb0c7";
+  const severityColor = severityColors[notification.severity] ?? "#64748b";
   const canOpenTarget = Boolean(
     notification.target_threat_id ??
       (notification.target_type === "threat" ? notification.target_id : null),
@@ -258,7 +258,7 @@ function NotificationCard({
           <Text style={styles.metaText}>{notification.notification_type}</Text>
           {canOpenTarget ? (
             <>
-              <Ionicons name="open-outline" size={13} color="#9fb0c7" />
+              <Ionicons name="open-outline" size={13} color="#6b7280" />
               <Text style={styles.metaText}>Open threat</Text>
             </>
           ) : null}
@@ -274,7 +274,7 @@ function NotificationCard({
           <Ionicons
             name={notification.is_read ? "checkmark-circle" : "checkmark-circle-outline"}
             size={16}
-            color={notification.is_read ? "#58d68d" : "#06111f"}
+            color={notification.is_read ? "#16a34a" : "#ffffff"}
           />
           <Text
             style={[styles.readButtonText, notification.is_read ? styles.readButtonTextDone : null]}
@@ -290,7 +290,7 @@ function NotificationCard({
 function EmptyState({ unreadOnly }: { unreadOnly: boolean }) {
   return (
     <View style={styles.emptyBox}>
-      <Ionicons name="notifications-outline" size={30} color="#9fb0c7" />
+      <Ionicons name="notifications-outline" size={30} color="#6b7280" />
       <Text style={styles.emptyTitle}>No notifications</Text>
       <Text style={styles.emptyText}>
         {unreadOnly ? "All notifications are read." : "There are no notifications yet."}
@@ -302,7 +302,7 @@ function EmptyState({ unreadOnly }: { unreadOnly: boolean }) {
 const styles = StyleSheet.create({
   safeArea: {
     flex: 1,
-    backgroundColor: "#06111f",
+    backgroundColor: "#f3f6fa",
   },
   container: {
     flex: 1,
@@ -319,21 +319,21 @@ const styles = StyleSheet.create({
     alignItems: "center",
   },
   eyebrow: {
-    color: "#58d68d",
+    color: "#6b7280",
     fontSize: 12,
-    fontWeight: "800",
+    fontWeight: "900",
     textTransform: "uppercase",
   },
   title: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 25,
-    fontWeight: "800",
+    fontWeight: "900",
     letterSpacing: 0,
   },
   iconButton: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     height: 44,
@@ -346,8 +346,8 @@ const styles = StyleSheet.create({
   },
   filterButton: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
@@ -356,26 +356,26 @@ const styles = StyleSheet.create({
     paddingVertical: 10,
   },
   filterButtonActive: {
-    backgroundColor: "#58d68d",
-    borderColor: "#58d68d",
+    backgroundColor: "#111827",
+    borderColor: "#111827",
   },
   filterText: {
-    color: "#d7e2f0",
+    color: "#6b7280",
     fontWeight: "800",
   },
   filterTextActive: {
-    color: "#06111f",
+    color: "#ffffff",
   },
   errorBox: {
-    backgroundColor: "#3b1620",
-    borderColor: "#8e2f45",
+    backgroundColor: "#fee2e2",
+    borderColor: "#fecaca",
     borderRadius: 8,
     borderWidth: 1,
     marginBottom: 14,
     padding: 12,
   },
   errorText: {
-    color: "#ffd9df",
+    color: "#991b1b",
   },
   loadingBox: {
     alignItems: "center",
@@ -384,15 +384,15 @@ const styles = StyleSheet.create({
     justifyContent: "center",
   },
   loadingText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
   },
   listContent: {
     gap: 12,
     paddingBottom: 24,
   },
   card: {
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     padding: 14,
@@ -423,20 +423,20 @@ const styles = StyleSheet.create({
     textTransform: "uppercase",
   },
   unreadPill: {
-    backgroundColor: "#58d68d",
+    backgroundColor: "#111827",
     borderRadius: 5,
     height: 10,
     marginLeft: "auto",
     width: 10,
   },
   cardTitle: {
-    color: "#f7fbff",
-    fontSize: 17,
-    fontWeight: "800",
+    color: "#111827",
+    fontSize: 18,
+    fontWeight: "900",
     lineHeight: 23,
   },
   cardMessage: {
-    color: "#b7c4d6",
+    color: "#4b5563",
     fontSize: 14,
     lineHeight: 20,
     marginTop: 8,
@@ -448,7 +448,7 @@ const styles = StyleSheet.create({
     marginTop: 12,
   },
   metaText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 12,
   },
   targetHint: {
@@ -460,7 +460,7 @@ const styles = StyleSheet.create({
   },
   readButton: {
     alignItems: "center",
-    backgroundColor: "#58d68d",
+    backgroundColor: "#111827",
     borderRadius: 8,
     flexDirection: "row",
     gap: 6,
@@ -468,34 +468,34 @@ const styles = StyleSheet.create({
     paddingVertical: 7,
   },
   readButtonDisabled: {
-    backgroundColor: "#123222",
-    borderColor: "#2f8756",
+    backgroundColor: "#dcfce7",
+    borderColor: "#bbf7d0",
     borderWidth: 1,
   },
   readButtonText: {
-    color: "#06111f",
+    color: "#ffffff",
     fontSize: 12,
     fontWeight: "800",
   },
   readButtonTextDone: {
-    color: "#d7ffe7",
+    color: "#166534",
   },
   emptyBox: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     gap: 8,
     padding: 24,
   },
   emptyTitle: {
-    color: "#f7fbff",
+    color: "#111827",
     fontSize: 17,
     fontWeight: "800",
   },
   emptyText: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 14,
     textAlign: "center",
   },

@@ -16,7 +16,6 @@ const tabs: Array<{
   { icon: "grid-outline", label: "Home", value: "home" },
   { icon: "shield-checkmark-outline", label: "Threats", value: "threats" },
   { icon: "search-outline", label: "IOC", value: "iocSearch" },
-  { icon: "star-outline", label: "Saved", value: "favorites" },
   { icon: "person-circle-outline", label: "Account", value: "account" },
 ];
 
@@ -36,7 +35,7 @@ export function MainTabBar({ activeTab, onSelectTab }: MainTabBarProps) {
               pressed ? styles.tabButtonPressed : null,
             ]}
           >
-            <Ionicons name={tab.icon} size={19} color={isActive ? "#06111f" : "#9fb0c7"} />
+            <Ionicons name={tab.icon} size={19} color={isActive ? "#ffffff" : "#6b7280"} />
             <Text style={[styles.tabLabel, isActive ? styles.tabLabelActive : null]}>
               {tab.label}
             </Text>
@@ -50,8 +49,8 @@ export function MainTabBar({ activeTab, onSelectTab }: MainTabBarProps) {
 const styles = StyleSheet.create({
   wrapper: {
     alignItems: "center",
-    backgroundColor: "#0d1b2d",
-    borderColor: "#263a55",
+    backgroundColor: "#ffffff",
+    borderColor: "#dbe3ee",
     borderRadius: 8,
     borderWidth: 1,
     flexDirection: "row",
@@ -68,17 +67,17 @@ const styles = StyleSheet.create({
     minHeight: 50,
   },
   tabButtonActive: {
-    backgroundColor: "#58d68d",
+    backgroundColor: "#111827",
   },
   tabButtonPressed: {
     opacity: 0.78,
   },
   tabLabel: {
-    color: "#9fb0c7",
+    color: "#6b7280",
     fontSize: 10,
     fontWeight: "800",
   },
   tabLabelActive: {
-    color: "#06111f",
+    color: "#ffffff",
   },
 });
