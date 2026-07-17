@@ -105,6 +105,29 @@ role: cti_analyst
 
 Bu komut API sunucusunu baslatir. `--reload`, kod degisince backend'in kendini yenilemesini saglar.
 
+Backend acildiginda otomatik feed scheduler da baslar. Varsayilan olarak her 30 dakikada bir ucretsiz kaynaklari kontrol eder:
+
+- CISA KEV
+- CISA Advisories
+- CISA News
+- BleepingComputer
+- SecurityWeek
+- The Hacker News
+- PortSwigger
+- Ars Technica Security
+- Check Point Research
+
+Scheduler ayarlari `.env` icinden degistirilebilir:
+
+```env
+FEED_SCHEDULER_ENABLED=true
+FEED_SCHEDULER_INTERVAL_MINUTES=30
+FEED_SCHEDULER_LIMIT_PER_SOURCE=3
+FEED_SCHEDULER_CISA_KEV_LIMIT=10
+```
+
+Backend kapaliysa otomatik import calismaz. Gercek ortamda backend sunucuda surekli acik kalacagi icin feedler duzenli kontrol edilir.
+
 Swagger:
 
 ```text
@@ -164,6 +187,8 @@ DELETE /api/v1/favorites/{favorite_id}
 GET /api/v1/notifications
 PATCH /api/v1/notifications/{notification_id}/read
 PATCH /api/v1/notifications/read-all
+POST /api/v1/feeds/import/cisa-kev
+POST /api/v1/feeds/import/free-news
 ```
 
 ## Endpoint Ozeti
@@ -184,6 +209,8 @@ PATCH /api/v1/notifications/read-all
 | `GET /api/v1/notifications` | Bildirimleri listeler. | Evet |
 | `PATCH /api/v1/notifications/{notification_id}/read` | Bir bildirimi okundu yapar. | Evet |
 | `PATCH /api/v1/notifications/read-all` | Tum bildirimleri okundu yapar. | Evet |
+| `POST /api/v1/feeds/import/cisa-kev` | CISA KEV gercek zafiyet verilerini manuel ice aktarir. | Evet |
+| `POST /api/v1/feeds/import/free-news` | Ucretsiz RSS haber kaynaklarini manuel ice aktarir. | Evet |
 
 ## PgAdmin Bilgileri
 
