@@ -11,7 +11,7 @@ export async function createThreatSummary(
 ): Promise<ThreatAiSummaryResponse> {
   const response = await fetch(`${API_BASE_URL}/ai/threat-summary`, {
     body: JSON.stringify({
-      summary_type: "short",
+      summary_type: "analyst_brief",
       threat_id: threatId,
     }),
     headers: {

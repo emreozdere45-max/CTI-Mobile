@@ -3,6 +3,7 @@ import { useEffect, useState } from "react";
 import {
   ActivityIndicator,
   Alert,
+  Linking,
   Pressable,
   ScrollView,
   Share,
@@ -52,7 +53,9 @@ export function ThreatDetailScreen({
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [favoriteMessage, setFavoriteMessage] = useState<string | null>(null);
 
-  const severityColor = severityColors[(detail ?? threat).severity] ?? "#64748b";
+  const currentThreat = detail ?? threat;
+  const severityColor = severityColors[currentThreat.severity] ?? "#64748b";
+  const sourceUrl = currentThreat.source_url;
 
   async function loadDetail() {
     setIsLoading(true);
@@ -72,7 +75,6 @@ export function ThreatDetailScreen({
   }
 
   async function handleSharePress() {
-    const currentThreat = detail ?? threat;
     const message = formatThreatExport(currentThreat);
 
     try {
@@ -82,6 +84,18 @@ export function ThreatDetailScreen({
       });
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "Threat could not be shared.");
+    }
+  }
+
+  async function handleOpenSource() {
+    if (!sourceUrl) {
+      return;
+    }
+
+    try {
+      await Linking.openURL(sourceUrl);
+    } catch (error) {
+      setErrorMessage(error instanceof Error ? error.message : "Source could not be opened.");
     }
   }
 
@@ -227,26 +241,39 @@ export function ThreatDetailScreen({
               <View style={styles.severityRow}>
                 <View style={[styles.severityDot, { backgroundColor: severityColor }]} />
                 <Text style={[styles.severityText, { color: severityColor }]}>
-                  {(detail ?? threat).severity}
+                  {currentThreat.severity}
                 </Text>
               </View>
 
-              <Text style={styles.title}>{(detail ?? threat).title}</Text>
-              <Text style={styles.summary}>{(detail ?? threat).summary}</Text>
+              <Text style={styles.title}>{currentThreat.title}</Text>
+              <Text style={styles.summary}>{currentThreat.summary}</Text>
 
               <View style={styles.metricsRow}>
-                <Metric label="Confidence" value={`${(detail ?? threat).confidence_score}%`} />
-                <Metric label="Source" value={(detail ?? threat).source?.name ?? "Unknown"} />
+                <Metric label="Confidence" value={`${currentThreat.confidence_score}%`} />
+                <Metric label="Source" value={currentThreat.source?.name ?? "Unknown"} />
               </View>
+
+              {sourceUrl ? (
+                <Pressable
+                  onPress={() => void handleOpenSource()}
+                  style={({ pressed }) => [
+                    styles.sourceButton,
+                    pressed ? styles.sourceButtonPressed : null,
+                  ]}
+                >
+                  <Ionicons name="open-outline" size={18} color="#ffffff" />
+                  <Text style={styles.sourceButtonText}>Open source</Text>
+                </Pressable>
+              ) : null}
             </View>
 
             {detail ? (
               <>
                 <Section title="Description">
-                  <Text style={styles.bodyText}>{detail.description}</Text>
+                  <Text style={styles.bodyText}>{cleanDescription(detail.description)}</Text>
                 </Section>
 
-                <Section title="AI Summary">
+                <Section title="AI Analyst Brief">
                   {aiSummary ? (
                     <View style={styles.aiSummaryBox}>
                       <Text style={styles.aiSummaryText}>{aiSummary.content}</Text>
@@ -256,7 +283,7 @@ export function ThreatDetailScreen({
                     </View>
                   ) : (
                     <Text style={styles.mutedText}>
-                      Generate a short analyst summary for this threat.
+                      Generate an analyst brief with impact, checks, and recommended action.
                     </Text>
                   )}
 
@@ -274,7 +301,7 @@ export function ThreatDetailScreen({
                       <Ionicons name="sparkles-outline" size={18} color="#ffffff" />
                     )}
                     <Text style={styles.aiButtonText}>
-                      {aiSummary ? "Regenerate summary" : "Generate summary"}
+                      {aiSummary ? "Regenerate brief" : "Generate brief"}
                     </Text>
                   </Pressable>
                 </Section>
@@ -383,13 +410,14 @@ function formatThreatExport(threat: Threat | ThreatDetail): string {
     `Severity: ${threat.severity}`,
     `Confidence: ${threat.confidence_score}%`,
     `Source: ${threat.source?.name ?? "Unknown"}`,
+    `Source URL: ${threat.source_url ?? "Not available"}`,
     `Tags: ${tags}`,
     "",
     "Summary:",
     threat.summary,
     "",
     "Description:",
-    detail?.description ?? "No description.",
+    detail ? cleanDescription(detail.description) : "No description.",
     "",
     "Related IOCs:",
     iocs,
@@ -397,6 +425,10 @@ function formatThreatExport(threat: Threat | ThreatDetail): string {
     "Recommended Actions:",
     actions,
   ].join("\n");
+}
+
+function cleanDescription(description: string): string {
+  return description.replace(/\n?\s*Source link:\s*https?:\/\/\S+\s*$/i, "").trim();
 }
 
 function Metric({ label, value }: { label: string; value: string }) {
@@ -618,6 +650,24 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontSize: 12,
     marginTop: 2,
+  },
+  sourceButton: {
+    alignItems: "center",
+    backgroundColor: "#111827",
+    borderRadius: 8,
+    flexDirection: "row",
+    gap: 8,
+    justifyContent: "center",
+    marginTop: 14,
+    minHeight: 44,
+  },
+  sourceButtonPressed: {
+    opacity: 0.82,
+  },
+  sourceButtonText: {
+    color: "#ffffff",
+    fontSize: 14,
+    fontWeight: "900",
   },
   section: {
     backgroundColor: "#ffffff",

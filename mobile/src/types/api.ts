@@ -22,6 +22,7 @@ export type Threat = {
     id: string;
     name: string;
   };
+  source_url?: string | null;
   tags: string[];
   published_at: string;
   is_favorite: boolean;

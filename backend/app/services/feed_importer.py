@@ -469,7 +469,7 @@ def normalize_rss_item(item: dict, feed_config: dict) -> dict:
         "external_id": item["guid"] or link or f"{feed_id}:{title}",
         "title": title[:500],
         "summary": build_summary(description),
-        "description": f"{description}\n\nSource link: {link}".strip(),
+        "description": description,
         "severity": severity,
         "confidence_score": infer_news_confidence(feed_config, severity),
         "industry": "multiple",

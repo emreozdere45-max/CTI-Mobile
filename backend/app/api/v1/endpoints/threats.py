@@ -24,6 +24,28 @@ def serialize_source(source: Source | None) -> dict | None:
     }
 
 
+def get_source_url(threat: Threat) -> str | None:
+    raw_data = threat.raw_data or {}
+    source_payload = raw_data.get("source_payload") or {}
+    if isinstance(source_payload, dict):
+        link = source_payload.get("link")
+        if isinstance(link, str) and link:
+            return link
+
+    for key in ("source_url", "external_url", "link"):
+        value = raw_data.get(key)
+        if isinstance(value, str) and value:
+            return value
+
+    if threat.source and isinstance(threat.source.source_metadata, dict):
+        for key in ("url", "primary_url"):
+            value = threat.source.source_metadata.get(key)
+            if isinstance(value, str) and value:
+                return value
+
+    return None
+
+
 def serialize_threat_summary(threat: Threat) -> dict:
     return {
         "id": str(threat.id),
@@ -32,6 +54,7 @@ def serialize_threat_summary(threat: Threat) -> dict:
         "severity": threat.severity,
         "confidence_score": threat.confidence_score,
         "source": serialize_source(threat.source),
+        "source_url": get_source_url(threat),
         "tags": threat.tags,
         "published_at": threat.published_at.isoformat() if threat.published_at else None,
         "is_favorite": False,
