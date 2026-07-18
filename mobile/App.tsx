@@ -136,7 +136,6 @@ export default function App() {
         />
       ) : session && activeScreen === "threats" ? (
         <ThreatsScreen
-          onOpenCreateThreat={() => setActiveScreen("createThreat")}
           onOpenFavorites={() => setActiveScreen("favorites")}
           onOpenHome={() => setActiveScreen("home")}
           onOpenIocSearch={() => setActiveScreen("iocSearch")}

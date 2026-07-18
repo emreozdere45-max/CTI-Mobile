@@ -116,6 +116,11 @@ Backend acildiginda otomatik feed scheduler da baslar. Varsayilan olarak her 30 
 - PortSwigger
 - Ars Technica Security
 - Check Point Research
+- Microsoft Security Blog
+- Google Threat Intelligence / Mandiant
+- AWS Security Bulletins
+- SentinelLABS
+- Cisco Talos
 
 Scheduler ayarlari `.env` icinden degistirilebilir:
 

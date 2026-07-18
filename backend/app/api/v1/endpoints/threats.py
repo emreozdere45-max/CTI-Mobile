@@ -12,6 +12,8 @@ from app.schemas.threat import ThreatCreateRequest, ThreatListResponse, ThreatRe
 router = APIRouter()
 
 THREAT_EDITOR_ROLES = {"cti_admin", "cti_analyst"}
+HIDDEN_THREAT_FEEDS = {"demo_external_feed", "github_advisories"}
+HIDDEN_THREAT_SOURCE_NAMES = {"Demo External Feed", "GitHub Advisory Database", "Internal CTI"}
 
 
 def serialize_source(source: Source | None) -> dict | None:
@@ -44,6 +46,17 @@ def get_source_url(threat: Threat) -> str | None:
                 return value
 
     return None
+
+
+def should_hide_from_threat_feed(threat: Threat) -> bool:
+    raw_data = threat.raw_data or {}
+    tags = {tag.lower() for tag in threat.tags or []}
+
+    if raw_data.get("feed") in HIDDEN_THREAT_FEEDS:
+        return True
+    if threat.source and threat.source.name in HIDDEN_THREAT_SOURCE_NAMES:
+        return True
+    return "github-advisory" in tags
 
 
 def serialize_threat_summary(threat: Threat) -> dict:
@@ -110,7 +123,7 @@ def list_threats(
     threats = db.scalars(
         select(Threat).options(selectinload(Threat.source)).order_by(Threat.published_at.desc())
     ).all()
-    data = [serialize_threat_summary(threat) for threat in threats]
+    data = [serialize_threat_summary(threat) for threat in threats if not should_hide_from_threat_feed(threat)]
 
     return {
         "data": data,

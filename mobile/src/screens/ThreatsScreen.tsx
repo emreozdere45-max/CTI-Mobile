@@ -18,7 +18,6 @@ import type { AuthSession, Threat } from "../types/api";
 
 type ThreatsScreenProps = {
   session: AuthSession;
-  onOpenCreateThreat: () => void;
   onOpenFavorites: () => void;
   onOpenHome: () => void;
   onOpenIocSearch: () => void;
@@ -40,7 +39,6 @@ type SeverityFilter = (typeof severityFilters)[number];
 
 export function ThreatsScreen({
   session,
-  onOpenCreateThreat,
   onOpenFavorites,
   onOpenHome,
   onOpenIocSearch,
@@ -117,8 +115,8 @@ export function ThreatsScreen({
             <Pressable onPress={onOpenNotifications} style={styles.iconButton}>
               <Ionicons name="notifications-outline" size={22} color="#111827" />
             </Pressable>
-            <Pressable onPress={onOpenCreateThreat} style={styles.iconButton}>
-              <Ionicons name="add" size={24} color="#111827" />
+            <Pressable onPress={onOpenFavorites} style={styles.iconButton}>
+              <Ionicons name="bookmark-outline" size={22} color="#111827" />
             </Pressable>
           </View>
         </View>
@@ -129,10 +127,6 @@ export function ThreatsScreen({
               ? `${criticalCount} critical signals are active.`
               : "No critical signals in the current feed."}
           </Text>
-          <Pressable onPress={onOpenFavorites} style={styles.savedButton}>
-            <Ionicons name="star-outline" size={16} color="#111827" />
-            <Text style={styles.savedButtonText}>Saved</Text>
-          </Pressable>
         </View>
 
         <View style={styles.searchPanel}>

@@ -6,7 +6,11 @@ from app.api.deps import get_current_user, require_roles
 from app.db.session import get_db
 from app.models import User
 from app.schemas.feed import FeedImportResponse
-from app.services.feed_importer import import_cisa_kev_feed, import_demo_feed, import_free_news_feeds
+from app.services.feed_importer import (
+    import_cisa_kev_feed,
+    import_demo_feed,
+    import_free_news_feeds,
+)
 
 router = APIRouter()
 

@@ -70,6 +70,36 @@ RSS_FEEDS = [
         "trust_score": 82,
         "tags": ["research", "threat-research"],
     },
+    {
+        "name": "Microsoft Security Blog",
+        "url": "https://www.microsoft.com/en-us/security/blog/feed/",
+        "trust_score": 86,
+        "tags": ["microsoft", "threat-intelligence", "security-blog"],
+    },
+    {
+        "name": "Google Threat Intelligence",
+        "url": "https://feeds.feedburner.com/threatintelligence/pvexyqv7v0v",
+        "trust_score": 88,
+        "tags": ["google", "mandiant", "threat-intelligence"],
+    },
+    {
+        "name": "AWS Security Bulletins",
+        "url": "https://aws.amazon.com/security/security-bulletins/rss/feed/",
+        "trust_score": 86,
+        "tags": ["aws", "cloud-security", "security-bulletin"],
+    },
+    {
+        "name": "SentinelLABS",
+        "url": "https://www.sentinelone.com/labs/feed/",
+        "trust_score": 82,
+        "tags": ["sentinelone", "research", "malware"],
+    },
+    {
+        "name": "Cisco Talos",
+        "url": "https://blog.talosintelligence.com/rss/",
+        "trust_score": 84,
+        "tags": ["cisco-talos", "threat-research", "ioc"],
+    },
 ]
 CVE_PATTERN = re.compile(r"CVE-\d{4}-\d{4,19}", re.IGNORECASE)
 TAG_SPLIT_PATTERN = re.compile(r"[^a-z0-9]+")
@@ -650,6 +680,7 @@ def get_or_create_feed_threat(
             "feed": item.get("feed", "demo_external_feed"),
             "imported_by": imported_by,
             "source_payload": item.get("raw"),
+            "presentation_version": "default_v1",
         },
     )
     db.add(threat)
