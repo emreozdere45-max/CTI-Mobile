@@ -132,6 +132,7 @@ export default function App() {
           onBack={() => setActiveScreen("home")}
           onLogout={handleLogout}
           onSelectTab={openMainTab}
+          onSelectThreat={setSelectedThreat}
           session={session}
         />
       ) : session && activeScreen === "threats" ? (
