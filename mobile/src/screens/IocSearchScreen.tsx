@@ -40,7 +40,13 @@ const riskColors = {
   low: "#16a34a",
 };
 
-const typeOptions = ["auto", "domain", "ip", "url", "hash", "email"];
+const quickSearches = [
+  { label: "High risk", value: "", type: "auto" },
+  { label: "Domains", value: "", type: "domain" },
+  { label: "IPs", value: "", type: "ip" },
+  { label: "malicious", value: "malicious", type: "auto" },
+  { label: "203", value: "203", type: "auto" },
+];
 
 export function IocSearchScreen({
   activeTab,
@@ -51,7 +57,7 @@ export function IocSearchScreen({
   onSelectThreat,
   onStateChange,
 }: IocSearchScreenProps) {
-  const [query, setQuery] = useState(initialState?.query ?? "malicious-example.com");
+  const [query, setQuery] = useState(initialState?.query ?? "");
   const [selectedType, setSelectedType] = useState(initialState?.selectedType ?? "auto");
   const [result, setResult] = useState<IocSearchData | null>(initialState?.result ?? null);
   const [favoriteIdsByIocId, setFavoriteIdsByIocId] = useState<Record<string, string>>(
@@ -74,12 +80,16 @@ export function IocSearchScreen({
   useEffect(() => {
     if (initialState?.autoSearch) {
       void handleSearch();
+    } else if (!initialState?.result) {
+      void handleSearch({ allowEmpty: true });
     }
   }, []);
 
-  async function handleSearch() {
-    const trimmedQuery = query.trim();
-    if (trimmedQuery.length < 2) {
+  async function handleSearch(options?: { allowEmpty?: boolean; nextQuery?: string; nextType?: string }) {
+    const activeQuery = options?.nextQuery ?? query;
+    const activeType = options?.nextType ?? selectedType;
+    const normalizedQuery = activeQuery.trim();
+    if (!options?.allowEmpty && normalizedQuery.length > 0 && normalizedQuery.length < 2) {
       setErrorMessage("Enter at least 2 characters.");
       return;
     }
@@ -91,8 +101,8 @@ export function IocSearchScreen({
     try {
       const response = await searchIocs(
         session.accessToken,
-        trimmedQuery,
-        selectedType === "auto" ? undefined : selectedType,
+        normalizedQuery || undefined,
+        activeType === "auto" ? undefined : activeType,
       );
       const favorites = await listFavorites(session.accessToken, "ioc");
       const nextFavoriteMap = favorites.data.reduce<Record<string, string>>(
@@ -105,11 +115,17 @@ export function IocSearchScreen({
 
       setResult(response.data);
       setFavoriteIdsByIocId(nextFavoriteMap);
+      setQuery(activeQuery);
+      setSelectedType(activeType);
     } catch (error) {
       setErrorMessage(error instanceof Error ? error.message : "IOC search could not be completed.");
     } finally {
       setIsLoading(false);
     }
+  }
+
+  function handleQuickSearch(nextQuery: string, nextType: string) {
+    void handleSearch({ allowEmpty: true, nextQuery, nextType });
   }
 
   async function handleToggleFavorite(ioc: IocSearchResult) {
@@ -163,7 +179,10 @@ export function IocSearchScreen({
             <TextInput
               autoCapitalize="none"
               autoCorrect={false}
-              onChangeText={setQuery}
+              onChangeText={(value) => {
+                setQuery(value);
+                setSelectedType("auto");
+              }}
               onSubmitEditing={() => void handleSearch()}
               placeholder="domain, IP, URL, hash or email"
               placeholderTextColor="#9ca3af"
@@ -173,31 +192,24 @@ export function IocSearchScreen({
             />
           </View>
 
-          <View style={styles.typeRow}>
-            {typeOptions.map((option) => (
-              <Pressable
-                key={option}
-                onPress={() => setSelectedType(option)}
-                style={[
-                  styles.typeChip,
-                  selectedType === option ? styles.typeChipActive : null,
-                ]}
-              >
-                <Text
-                  style={[
-                    styles.typeChipText,
-                    selectedType === option ? styles.typeChipTextActive : null,
-                  ]}
+          <View style={styles.quickSection}>
+            <Text style={styles.quickTitle}>Quick lookup</Text>
+            <View style={styles.quickRow}>
+              {quickSearches.map((item) => (
+                <Pressable
+                  key={`${item.label}-${item.type}`}
+                  onPress={() => handleQuickSearch(item.value, item.type)}
+                  style={({ pressed }) => [styles.quickChip, pressed ? styles.quickChipPressed : null]}
                 >
-                  {option}
-                </Text>
-              </Pressable>
-            ))}
+                  <Text style={styles.quickChipText}>{item.label}</Text>
+                </Pressable>
+              ))}
+            </View>
           </View>
 
           <Pressable
             disabled={isLoading}
-            onPress={() => void handleSearch()}
+            onPress={() => void handleSearch({ allowEmpty: true })}
             style={({ pressed }) => [
               styles.searchButton,
               pressed || isLoading ? styles.searchButtonPressed : null,
@@ -208,7 +220,7 @@ export function IocSearchScreen({
             ) : (
               <Ionicons name="shield-checkmark-outline" size={18} color="#ffffff" />
             )}
-            <Text style={styles.searchButtonText}>Search IOC</Text>
+            <Text style={styles.searchButtonText}>{query.trim() ? "Search IOC" : "Show popular IOCs"}</Text>
           </Pressable>
         </View>
 
@@ -226,7 +238,9 @@ export function IocSearchScreen({
 
         {result ? (
           <View style={styles.resultMeta}>
-            <Text style={styles.resultMetaText}>Query: {result.query}</Text>
+            <Text style={styles.resultMetaText}>
+              {result.query ? `Query: ${result.query}` : "Showing recent high-risk indicators"}
+            </Text>
             <Text style={styles.resultMetaText}>Detected: {result.detected_type}</Text>
           </View>
         ) : null}
@@ -274,6 +288,7 @@ function IocResultCard({
   const riskLevel = result.risk_score >= 80 ? "high" : result.risk_score >= 50 ? "medium" : "low";
   const riskColor = riskColors[riskLevel];
   const hasRelatedThreat = Boolean(result.related_threats?.length);
+  const meaning = getIocMeaning(result);
 
   return (
     <View
@@ -323,9 +338,7 @@ function IocResultCard({
           {result.value}
         </Text>
 
-        <Text style={[styles.favoriteHint, isFavorite ? styles.favoriteHintActive : null]}>
-          {hasRelatedThreat ? "Tap card to open related threat" : "No related threat to open"}
-        </Text>
+        <Text style={styles.iocMeaning}>{meaning}</Text>
 
         <View style={styles.scoreGrid}>
           <View style={styles.scoreBox}>
@@ -341,9 +354,44 @@ function IocResultCard({
             <Text style={styles.scoreLabel}>Threats</Text>
           </View>
         </View>
+
+        <View style={styles.cardActionRow}>
+          <View style={styles.cardActionCopy}>
+            <Text style={styles.cardActionTitle}>
+              {hasRelatedThreat ? "Related threat available" : "No related threat yet"}
+            </Text>
+            <Text style={styles.cardActionText}>
+              {hasRelatedThreat ? "Open the threat connected to this indicator." : "This IOC is saved without a visible threat link."}
+            </Text>
+          </View>
+          {hasRelatedThreat ? (
+            <View style={styles.cardActionIcon}>
+              <Ionicons name="arrow-forward" size={18} color="#ffffff" />
+            </View>
+          ) : null}
+        </View>
       </Pressable>
     </View>
   );
+}
+
+function getIocMeaning(result: IocSearchResult) {
+  if (result.type === "domain") {
+    return "A domain indicator can point to phishing pages, command-and-control servers, or malicious delivery sites.";
+  }
+  if (result.type === "ip") {
+    return "An IP indicator can be checked against firewall, proxy, DNS, and EDR logs.";
+  }
+  if (result.type === "hash") {
+    return "A hash indicator identifies a specific suspicious file sample.";
+  }
+  if (result.type === "url") {
+    return "A URL indicator points to a specific suspicious page or payload location.";
+  }
+  if (result.type === "email") {
+    return "An email indicator can help trace phishing senders or suspicious accounts.";
+  }
+  return "This indicator can be used to investigate related activity in security logs.";
 }
 
 function EmptyState({ hasSearched }: { hasSearched: boolean }) {
@@ -434,6 +482,37 @@ const styles = StyleSheet.create({
     flex: 1,
     fontSize: 15,
     minHeight: 46,
+  },
+  quickSection: {
+    marginTop: 12,
+  },
+  quickTitle: {
+    color: "#6b7280",
+    fontSize: 12,
+    fontWeight: "800",
+    marginBottom: 8,
+    textTransform: "uppercase",
+  },
+  quickRow: {
+    flexDirection: "row",
+    flexWrap: "wrap",
+    gap: 8,
+  },
+  quickChip: {
+    backgroundColor: "#eef2f7",
+    borderColor: "#dbe3ee",
+    borderRadius: 8,
+    borderWidth: 1,
+    paddingHorizontal: 10,
+    paddingVertical: 8,
+  },
+  quickChipPressed: {
+    opacity: 0.75,
+  },
+  quickChipText: {
+    color: "#111827",
+    fontSize: 12,
+    fontWeight: "900",
   },
   typeRow: {
     flexDirection: "row",
@@ -600,6 +679,12 @@ const styles = StyleSheet.create({
   favoriteHintActive: {
     color: "#111827",
   },
+  iocMeaning: {
+    color: "#4b5563",
+    fontSize: 13,
+    lineHeight: 19,
+    marginTop: 8,
+  },
   scoreGrid: {
     flexDirection: "row",
     gap: 8,
@@ -622,6 +707,37 @@ const styles = StyleSheet.create({
     color: "#6b7280",
     fontSize: 11,
     marginTop: 2,
+  },
+  cardActionRow: {
+    alignItems: "center",
+    backgroundColor: "#111827",
+    borderRadius: 8,
+    flexDirection: "row",
+    justifyContent: "space-between",
+    marginTop: 12,
+    padding: 12,
+  },
+  cardActionTitle: {
+    color: "#ffffff",
+    fontSize: 13,
+    fontWeight: "900",
+  },
+  cardActionCopy: {
+    flex: 1,
+  },
+  cardActionText: {
+    color: "#cbd5e1",
+    fontSize: 12,
+    marginTop: 2,
+  },
+  cardActionIcon: {
+    alignItems: "center",
+    backgroundColor: "#2563eb",
+    borderRadius: 8,
+    height: 34,
+    justifyContent: "center",
+    marginLeft: 10,
+    width: 34,
   },
   emptyBox: {
     alignItems: "center",

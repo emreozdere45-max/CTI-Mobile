@@ -7,10 +7,13 @@ type IocSearchResponse = {
 
 export async function searchIocs(
   accessToken: string,
-  value: string,
+  value?: string,
   type?: string,
 ): Promise<IocSearchResponse> {
-  const params = new URLSearchParams({ value });
+  const params = new URLSearchParams();
+  if (value) {
+    params.set("value", value);
+  }
   if (type) {
     params.set("type", type);
   }
